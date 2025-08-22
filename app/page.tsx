@@ -8,10 +8,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('') // Clear previous errors
     
     try {
       const { createClient } = await import('../lib/supabase')
@@ -23,13 +25,22 @@ export default function LoginPage() {
       })
 
       if (error) {
-        alert('Login failed: ' + error.message)
+        // Handle different error types with user-friendly messages
+        if (error.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Please check your credentials.')
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('Please verify your email address before signing in.')
+        } else if (error.message.includes('Too many requests')) {
+          setError('Too many login attempts. Please try again in a few minutes.')
+        } else {
+          setError('Login failed. Please try again.')
+        }
       } else {
         // Redirect to dashboard on successful login
         window.location.href = '/dashboard'
       }
     } catch (error) {
-      alert('Login failed: ' + (error as Error).message)
+      setError('Something went wrong. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -134,6 +145,13 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
 
               {/* Submit Button */}
               <button
