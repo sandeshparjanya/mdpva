@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS members (
   profile_photo_url TEXT,
   notes TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
 
 -- Create indexes for better performance
@@ -30,6 +31,7 @@ CREATE INDEX IF NOT EXISTS idx_members_status ON members(status);
 CREATE INDEX IF NOT EXISTS idx_members_profession ON members(profession);
 CREATE INDEX IF NOT EXISTS idx_members_pincode ON members(pincode);
 CREATE INDEX IF NOT EXISTS idx_members_created_at ON members(created_at);
+CREATE INDEX IF NOT EXISTS idx_members_active ON members(deleted_at) WHERE deleted_at IS NULL;
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()

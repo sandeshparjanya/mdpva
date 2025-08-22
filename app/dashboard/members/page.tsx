@@ -35,6 +35,7 @@ export default function MembersPage() {
   // Quick Peek state
   const [selectedMember, setSelectedMember] = useState<Member | null>(null)
   const [isPeekOpen, setIsPeekOpen] = useState(false)
+  const [confirmTarget, setConfirmTarget] = useState<Member | null>(null)
 
   const handleAddMember = (newMember: Member) => {
     setMembers(prev => [newMember, ...prev])
@@ -71,22 +72,31 @@ export default function MembersPage() {
 
   async function handleDelete(member: Member) {
     const who = `${member.first_name} ${member.last_name} (${member.member_id})`
-    const confirmed = window.confirm(`Delete member ${who}? This action cannot be undone.`)
-    if (!confirmed) return
-
+    
     try {
+      console.log('Delete attempt for:', who)
+      // Close confirm modal if open and proceed
+      setConfirmTarget(null)
       setLoading(true)
-      const { error: delError } = await supabase
+      console.log('Starting soft delete for member_id:', member.member_id)
+      
+      // Soft delete: set deleted_at timestamp
+      const { data, error: delError } = await supabase
         .from('members')
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq('member_id', member.member_id)
+        .select()
+
+      console.log('Delete result:', { data, error: delError })
 
       if (delError) throw delError
 
+      console.log('Delete successful, refreshing data...')
       // Refresh list and stats
       await fetchMembers(page, searchQuery)
       await fetchStats()
       closePeek()
+      console.log('Data refresh complete')
     } catch (err) {
       console.error('Failed to delete member', err)
       setError('Failed to delete member. Please try again.')
@@ -110,6 +120,7 @@ export default function MembersPage() {
       let request = supabase
         .from('members')
         .select('*', { count: 'exact' })
+        .is('deleted_at', null)  // Only get non-deleted members
         .order('created_at', { ascending: false })
         .range(from, to)
 
@@ -136,22 +147,25 @@ export default function MembersPage() {
 
   async function fetchStats() {
     try {
-      // Total members
+      // Total members (non-deleted)
       const totalReq = supabase
         .from('members')
         .select('id', { count: 'exact', head: true })
+        .is('deleted_at', null)
 
       // Active
       const activeReq = supabase
         .from('members')
         .select('id', { count: 'exact', head: true })
         .eq('status', 'active')
+        .is('deleted_at', null)
 
       // Inactive
       const inactiveReq = supabase
         .from('members')
         .select('id', { count: 'exact', head: true })
         .eq('status', 'inactive')
+        .is('deleted_at', null)
 
       // New this month
       const now = new Date()
@@ -160,6 +174,7 @@ export default function MembersPage() {
         .from('members')
         .select('id', { count: 'exact', head: true })
         .gte('created_at', firstOfMonth)
+        .is('deleted_at', null)
 
       const [totalRes, activeRes, inactiveRes, newRes] = await Promise.all([
         totalReq,
@@ -399,8 +414,10 @@ export default function MembersPage() {
                             <PencilSquareIcon className="w-5 h-5 mr-1" /> Edit
                           </button>
                           <button
-                            className="text-red-600 hover:text-red-800 inline-flex items-center text-sm"
-                            onClick={(e) => { e.stopPropagation(); handleDelete(m) }}
+                            type="button"
+                            className="text-red-600 hover:text-red-800 inline-flex items-center text-sm disabled:opacity-50"
+                            onClick={(e) => { e.stopPropagation(); setConfirmTarget(m) }}
+                            disabled={loading}
                             title="Delete"
                           >
                             <TrashIcon className="w-5 h-5 mr-1" /> Delete
@@ -472,8 +489,10 @@ export default function MembersPage() {
                     <PencilSquareIcon className="w-4 h-4 mr-1" /> Edit
                   </button>
                   <button
-                    className="btn-danger !py-1 !px-2 inline-flex items-center"
-                    onClick={() => handleDelete(selectedMember)}
+                    type="button"
+                    className="btn-danger !py-1 !px-2 inline-flex items-center disabled:opacity-50"
+                    onClick={() => selectedMember && setConfirmTarget(selectedMember)}
+                    disabled={loading}
                   >
                     <TrashIcon className="w-4 h-4 mr-1" /> Delete
                   </button>
@@ -562,6 +581,46 @@ export default function MembersPage() {
                     <div className="text-sm text-gray-900">{selectedMember.updated_at ? new Date(selectedMember.updated_at).toLocaleString() : '-'}</div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Confirm Delete Modal */}
+        {confirmTarget && (
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center">
+            <div className="absolute inset-0 bg-black bg-opacity-30" onClick={() => setConfirmTarget(null)} />
+            <div
+              className="relative bg-white rounded-lg shadow-xl border w-full max-w-md mx-4 p-6"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+            >
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete member</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Are you sure you want to delete{' '}
+                <span className="font-medium text-gray-900">
+                  {confirmTarget.first_name} {confirmTarget.last_name} ({confirmTarget.member_id})
+                </span>
+                ? This is a soft delete and can be undone later.
+              </p>
+              <div className="flex justify-end space-x-2">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setConfirmTarget(null)}
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn-danger"
+                  onClick={() => handleDelete(confirmTarget)}
+                  disabled={loading}
+                >
+                  Delete
+                </button>
               </div>
             </div>
           </div>
