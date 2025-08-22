@@ -407,8 +407,8 @@ export default function MembersPage() {
                         <div className="text-sm text-gray-500">{m.phone}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{m.city}</div>
-                        <div className="text-sm text-gray-500">{m.state}</div>
+                        <div className="text-sm text-gray-900">{m.area || m.city}</div>
+                        <div className="text-sm text-gray-500">{m.area ? `${m.city}, ${m.state}` : m.state}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -584,6 +584,7 @@ export default function MembersPage() {
                   <div className="text-sm text-gray-900">
                     {selectedMember.address_line1}
                     {selectedMember.address_line2 ? (<><br />{selectedMember.address_line2}</>) : null}
+                    {selectedMember.area ? (<><br />{selectedMember.area}</>) : null}
                     <br />{selectedMember.city}, {selectedMember.state} {selectedMember.pincode}
                   </div>
                 </div>

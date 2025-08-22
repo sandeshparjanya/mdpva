@@ -31,6 +31,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [availableAreas, setAvailableAreas] = useState<string[]>([])
 
   // Form state
   const [formData, setFormData] = useState({
@@ -45,6 +46,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
     pincode: '',
     city: '',
     state: '',
+    area: '',
     notes: ''
   })
 
@@ -69,11 +71,13 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
         pincode: '',
         city: '',
         state: '',
+        area: '',
         notes: ''
       })
       setProfilePhoto(null)
       setPhotoPreview('')
       setErrors({})
+      setAvailableAreas([])
     } else if (mode === 'edit' && initialMember) {
       // Prefill form for edit
       setMemberID(initialMember.member_id)
@@ -89,11 +93,24 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
         pincode: initialMember.pincode || '',
         city: initialMember.city || '',
         state: initialMember.state || '',
+        area: initialMember.area || '',
         notes: initialMember.notes || ''
       })
       setProfilePhoto(null)
       setPhotoPreview(initialMember.profile_photo_url || '')
       setErrors({})
+      // Preload areas for current pincode
+      if (initialMember.pincode) {
+        validatePincode(initialMember.pincode).then(res => {
+          if (res.isValid) {
+            setAvailableAreas(res.areas || [])
+          } else {
+            setAvailableAreas([])
+          }
+        }).catch(() => setAvailableAreas([]))
+      } else {
+        setAvailableAreas([])
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, mode, initialMember?.member_id])
@@ -120,16 +137,26 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
           state: result.state!
         }))
         setErrors(prev => ({ ...prev, pincode: '' }))
+        const areas = result.areas || []
+        setAvailableAreas(areas)
+        setFormData(prev => ({
+          ...prev,
+          area: (prev.area && areas.includes(prev.area)) ? prev.area : (areas.length === 1 ? areas[0] : '')
+        }))
       } else {
         setErrors(prev => ({ ...prev, pincode: result.error || 'Invalid pincode' }))
+        setAvailableAreas([])
+        setFormData(prev => ({ ...prev, area: '' }))
       }
     } else if (pincode.length < 6) {
       // Reset autofilled fields to avoid stale values
       setFormData(prev => ({
         ...prev,
         city: '',
-        state: ''
+        state: '',
+        area: ''
       }))
+      setAvailableAreas([])
       if (pincode.length > 0) {
         setErrors(prev => ({ ...prev, pincode: 'Pincode must be exactly 6 digits' }))
       } else {
@@ -174,6 +201,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
     if (!formData.addressLine1.trim()) newErrors.addressLine1 = 'Address is required'
     if (!formData.pincode.trim()) newErrors.pincode = 'Pincode is required'
     if (mode === 'add' && !profilePhoto) newErrors.photo = 'Profile photo is required'
+    if (availableAreas.length > 0 && !formData.area) newErrors.area = 'Please select an area'
 
     // Email validation
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -247,6 +275,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
           address_line2: formData.addressLine2.trim() || null,
           pincode: formData.pincode.trim(),
           city: formData.city.trim(),
+          area: formData.area.trim() || null,
           state: formData.state.trim(),
           profile_photo_url: photoResult.url,
           notes: formData.notes.trim() || null,
@@ -294,6 +323,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
           pincode: '',
           city: '',
           state: '',
+          area: '',
           notes: ''
         })
         setProfilePhoto(null)
@@ -324,6 +354,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
           address_line2: formData.addressLine2?.trim() ? formData.addressLine2.trim() : null,
           pincode: formData.pincode.trim(),
           city: formData.city.trim(),
+          area: formData.area.trim() || null,
           state: formData.state.trim(),
           profile_photo_url: photoUrl,
           notes: formData.notes.trim() || null,
@@ -555,8 +586,8 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
               />
             </div>
 
-            {/* Pincode, City, State */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Pincode, Area, City, State */}
+            <div className="grid grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Pincode *
@@ -570,6 +601,35 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
                   maxLength={6}
                 />
                 {errors.pincode && <p className="text-sm text-red-600 mt-1">{errors.pincode}</p>}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Area {availableAreas.length > 0 ? '*' : '(not available for this PIN)'}
+                </label>
+                {availableAreas.length > 0 ? (
+                  <>
+                    <select
+                      value={formData.area}
+                      onChange={(e) => handleInputChange('area', e.target.value)}
+                      className={`input-field ${errors.area ? 'border-red-300' : ''}`}
+                    >
+                      <option value="">Select area</option>
+                      {availableAreas.map((a) => (
+                        <option key={a} value={a}>{a}</option>
+                      ))}
+                    </select>
+                    {errors.area && <p className="text-sm text-red-600 mt-1">{errors.area}</p>}
+                  </>
+                ) : (
+                  <input
+                    type="text"
+                    value=""
+                    readOnly
+                    className="input-field bg-gray-50"
+                    placeholder="Not available for this PIN"
+                  />
+                )}
               </div>
               
               <div>

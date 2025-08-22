@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS members (
   address_line2 TEXT,
   pincode TEXT NOT NULL CHECK (pincode ~ '^[0-9]{6}$'),
   city TEXT NOT NULL,
+  area TEXT,
   state TEXT NOT NULL,
   status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'suspended')),
   profile_photo_url TEXT,
@@ -32,6 +33,17 @@ CREATE INDEX IF NOT EXISTS idx_members_profession ON members(profession);
 CREATE INDEX IF NOT EXISTS idx_members_pincode ON members(pincode);
 CREATE INDEX IF NOT EXISTS idx_members_created_at ON members(created_at);
 CREATE INDEX IF NOT EXISTS idx_members_active ON members(deleted_at) WHERE deleted_at IS NULL;
+
+-- Safe migration: add area column if it does not exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'members' AND column_name = 'area'
+    ) THEN
+        ALTER TABLE members ADD COLUMN area TEXT;
+    END IF;
+END $$;
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
