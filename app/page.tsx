@@ -13,13 +13,26 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     
-    // TODO: Implement Supabase authentication
-    console.log('Login attempt:', { email, password })
-    
-    // Simulate loading
-    setTimeout(() => {
+    try {
+      const { createClient } = await import('../lib/supabase')
+      const supabase = createClient()
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) {
+        alert('Login failed: ' + error.message)
+      } else {
+        // Redirect to dashboard on successful login
+        window.location.href = '/dashboard'
+      }
+    } catch (error) {
+      alert('Login failed: ' + (error as Error).message)
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   return (
