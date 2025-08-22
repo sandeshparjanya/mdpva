@@ -20,6 +20,8 @@ export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>('')
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<Member | null>(null)
 
   // Pagination
   const [page, setPage] = useState(1)
@@ -44,6 +46,21 @@ export default function MembersPage() {
     setPage(1)
     void fetchMembers(1, searchQuery)
     void fetchStats()
+  }
+
+  const handleEditSuccess = (updated: Member) => {
+    // Optimistically update list
+    setMembers(prev => prev.map(m => (m.member_id === updated.member_id ? updated : m)))
+    // Update peek panel if it is showing the same member
+    setSelectedMember(prev => (prev && prev.member_id === updated.member_id ? updated : prev))
+    // Refresh authoritative data
+    void fetchMembers(page, searchQuery)
+    void fetchStats()
+  }
+
+  function openEdit(member: Member) {
+    setEditTarget(member)
+    setIsEditModalOpen(true)
   }
 
   function openPeek(member: Member) {
@@ -408,7 +425,7 @@ export default function MembersPage() {
                         <div className="inline-flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             className="text-blue-600 hover:text-blue-800 inline-flex items-center text-sm"
-                            onClick={(e) => { e.stopPropagation(); /* TODO: implement edit */ alert('Edit member: Coming soon') }}
+                            onClick={(e) => { e.stopPropagation(); openEdit(m) }}
                             title="Edit"
                           >
                             <PencilSquareIcon className="w-5 h-5 mr-1" /> Edit
@@ -461,6 +478,15 @@ export default function MembersPage() {
           onSuccess={handleAddMember}
         />
 
+        {/* Edit Member Modal */}
+        <AddMemberModal
+          isOpen={isEditModalOpen}
+          onClose={() => { setIsEditModalOpen(false); setEditTarget(null) }}
+          onSuccess={handleEditSuccess}
+          mode="edit"
+          initialMember={editTarget || undefined}
+        />
+
         {/* Quick Side Peek Panel */}
         {selectedMember && (
           <div className={`fixed inset-0 z-[900] ${isPeekOpen ? '' : 'pointer-events-none'}`} aria-hidden={!isPeekOpen}>
@@ -484,7 +510,7 @@ export default function MembersPage() {
                 <div className="flex items-center space-x-2">
                   <button
                     className="btn-secondary !py-1 !px-2 inline-flex items-center"
-                    onClick={() => alert('Edit member: Coming soon')}
+                    onClick={() => selectedMember && openEdit(selectedMember)}
                   >
                     <PencilSquareIcon className="w-4 h-4 mr-1" /> Edit
                   </button>
