@@ -6,7 +6,10 @@ import AddMemberModal from '../../../components/AddMemberModal'
 import { 
   PlusIcon,
   UsersIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline'
 import { Member } from '../../../lib/memberUtils'
 import { createClient } from '../../../lib/supabase'
@@ -29,6 +32,10 @@ export default function MembersPage() {
   const [inactiveMembers, setInactiveMembers] = useState(0)
   const [newThisMonth, setNewThisMonth] = useState(0)
 
+  // Quick Peek state
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null)
+  const [isPeekOpen, setIsPeekOpen] = useState(false)
+
   const handleAddMember = (newMember: Member) => {
     setMembers(prev => [newMember, ...prev])
     console.log('Member added successfully:', newMember)
@@ -36,6 +43,56 @@ export default function MembersPage() {
     setPage(1)
     void fetchMembers(1, searchQuery)
     void fetchStats()
+  }
+
+  function openPeek(member: Member) {
+    setSelectedMember(member)
+    setIsPeekOpen(true)
+  }
+
+  function closePeek() {
+    setIsPeekOpen(false)
+    // don't clear selected to allow closing animation; clear after short delay if needed
+    setTimeout(() => setSelectedMember(null), 200)
+  }
+
+  // Close peek on Escape key
+  useEffect(() => {
+    if (!isPeekOpen) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        closePeek()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [isPeekOpen])
+
+  async function handleDelete(member: Member) {
+    const who = `${member.first_name} ${member.last_name} (${member.member_id})`
+    const confirmed = window.confirm(`Delete member ${who}? This action cannot be undone.`)
+    if (!confirmed) return
+
+    try {
+      setLoading(true)
+      const { error: delError } = await supabase
+        .from('members')
+        .delete()
+        .eq('member_id', member.member_id)
+
+      if (delError) throw delError
+
+      // Refresh list and stats
+      await fetchMembers(page, searchQuery)
+      await fetchStats()
+      closePeek()
+    } catch (err) {
+      console.error('Failed to delete member', err)
+      setError('Failed to delete member. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   // Debug modal state
@@ -285,11 +342,18 @@ export default function MembersPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {members.map((m) => (
-                    <tr key={m.id || m.member_id}>
+                    <tr
+                      key={m.id || m.member_id}
+                      className="group hover:bg-gray-50 cursor-pointer"
+                      onClick={() => openPeek(m)}
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === 'Enter') openPeek(m) }}
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="h-10 w-10 rounded-full bg-gray-100 overflow-hidden mr-3 flex items-center justify-center">
@@ -324,6 +388,24 @@ export default function MembersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {m.created_at ? new Date(m.created_at).toLocaleDateString() : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <div className="inline-flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            className="text-blue-600 hover:text-blue-800 inline-flex items-center text-sm"
+                            onClick={(e) => { e.stopPropagation(); /* TODO: implement edit */ alert('Edit member: Coming soon') }}
+                            title="Edit"
+                          >
+                            <PencilSquareIcon className="w-5 h-5 mr-1" /> Edit
+                          </button>
+                          <button
+                            className="text-red-600 hover:text-red-800 inline-flex items-center text-sm"
+                            onClick={(e) => { e.stopPropagation(); handleDelete(m) }}
+                            title="Delete"
+                          >
+                            <TrashIcon className="w-5 h-5 mr-1" /> Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -361,6 +443,129 @@ export default function MembersPage() {
           onClose={() => setIsAddModalOpen(false)}
           onSuccess={handleAddMember}
         />
+
+        {/* Quick Side Peek Panel */}
+        {selectedMember && (
+          <div className={`fixed inset-0 z-[900] ${isPeekOpen ? '' : 'pointer-events-none'}`} aria-hidden={!isPeekOpen}>
+            {/* Overlay */}
+            <div
+              className={`absolute inset-0 bg-black transition-opacity ${isPeekOpen ? 'bg-opacity-30' : 'bg-opacity-0'}`}
+              onClick={closePeek}
+            />
+            {/* Panel */}
+            <div
+              className={`absolute right-0 top-0 h-full w-full sm:w-[420px] bg-white shadow-xl border-l transition-transform duration-300 ${isPeekOpen ? 'translate-x-0' : 'translate-x-full'}`}
+              role="dialog"
+              aria-modal="true"
+            >
+              <div className="flex items-center justify-between p-4 border-b">
+                <div>
+                  <div className="text-sm text-gray-500">Member</div>
+                  <div className="text-lg font-semibold text-gray-900">{selectedMember.first_name} {selectedMember.last_name}</div>
+                  <div className="text-xs text-gray-500 font-mono">{selectedMember.member_id}</div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    className="btn-secondary !py-1 !px-2 inline-flex items-center"
+                    onClick={() => alert('Edit member: Coming soon')}
+                  >
+                    <PencilSquareIcon className="w-4 h-4 mr-1" /> Edit
+                  </button>
+                  <button
+                    className="btn-danger !py-1 !px-2 inline-flex items-center"
+                    onClick={() => handleDelete(selectedMember)}
+                  >
+                    <TrashIcon className="w-4 h-4 mr-1" /> Delete
+                  </button>
+                  <button className="p-2 hover:bg-gray-100 rounded" onClick={closePeek} aria-label="Close">
+                    <XMarkIcon className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-4 space-y-4 overflow-y-auto h-[calc(100%-56px)]">
+                {/* Avatar */}
+                <div className="flex items-center space-x-3">
+                  <div className="h-14 w-14 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
+                    {selectedMember.profile_photo_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={selectedMember.profile_photo_url} alt={`${selectedMember.first_name} ${selectedMember.last_name}`} className="h-14 w-14 object-cover" />
+                    ) : (
+                      <div className="text-base text-gray-500">
+                        {selectedMember.first_name.charAt(0)}{selectedMember.last_name.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Status</div>
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      selectedMember.status === 'active' ? 'bg-green-100 text-green-800' :
+                      selectedMember.status === 'inactive' ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {selectedMember.status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Contact */}
+                <div className="grid grid-cols-1 gap-2">
+                  <div>
+                    <div className="text-xs text-gray-500">Email</div>
+                    <div className="text-sm text-gray-900 break-all">{selectedMember.email}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500">Phone</div>
+                    <div className="text-sm text-gray-900">{selectedMember.phone}</div>
+                  </div>
+                </div>
+
+                {/* Profession */}
+                <div>
+                  <div className="text-xs text-gray-500">Profession</div>
+                  <div className="text-sm text-gray-900 capitalize">{selectedMember.profession}</div>
+                </div>
+
+                {/* Business */}
+                {selectedMember.business_name && (
+                  <div>
+                    <div className="text-xs text-gray-500">Business</div>
+                    <div className="text-sm text-gray-900">{selectedMember.business_name}</div>
+                  </div>
+                )}
+
+                {/* Address */}
+                <div>
+                  <div className="text-xs text-gray-500">Address</div>
+                  <div className="text-sm text-gray-900">
+                    {selectedMember.address_line1}
+                    {selectedMember.address_line2 ? (<><br />{selectedMember.address_line2}</>) : null}
+                    <br />{selectedMember.city}, {selectedMember.state} {selectedMember.pincode}
+                  </div>
+                </div>
+
+                {/* Notes */}
+                {selectedMember.notes && (
+                  <div>
+                    <div className="text-xs text-gray-500">Notes</div>
+                    <div className="text-sm text-gray-900 whitespace-pre-wrap">{selectedMember.notes}</div>
+                  </div>
+                )}
+
+                {/* Dates */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <div className="text-xs text-gray-500">Created</div>
+                    <div className="text-sm text-gray-900">{selectedMember.created_at ? new Date(selectedMember.created_at).toLocaleString() : '-'}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500">Updated</div>
+                    <div className="text-sm text-gray-900">{selectedMember.updated_at ? new Date(selectedMember.updated_at).toLocaleString() : '-'}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Sidebar>
   )
