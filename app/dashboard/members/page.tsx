@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Sidebar from '../../../components/Sidebar'
 import AddMemberModal from '../../../components/AddMemberModal'
 import { 
@@ -9,20 +9,131 @@ import {
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline'
 import { Member } from '../../../lib/memberUtils'
+import { createClient } from '../../../lib/supabase'
 
 export default function MembersPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [members, setMembers] = useState<Member[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string>('')
+
+  // Pagination
+  const [page, setPage] = useState(1)
+  const pageSize = 20
+  const [total, setTotal] = useState(0)
+
+  // Stats
+  const [totalMembers, setTotalMembers] = useState(0)
+  const [activeMembers, setActiveMembers] = useState(0)
+  const [inactiveMembers, setInactiveMembers] = useState(0)
+  const [newThisMonth, setNewThisMonth] = useState(0)
 
   const handleAddMember = (newMember: Member) => {
     setMembers(prev => [newMember, ...prev])
     console.log('Member added successfully:', newMember)
-    // TODO: Refresh member list or update stats
+    // Refresh list and stats to reflect authoritative data
+    setPage(1)
+    void fetchMembers(1, searchQuery)
+    void fetchStats()
   }
 
   // Debug modal state
   console.log('Modal state:', { isAddModalOpen })
+
+  const supabase = useMemo(() => createClient(), [])
+
+  async function fetchMembers(targetPage: number, query: string) {
+    try {
+      setLoading(true)
+      setError('')
+      const from = (targetPage - 1) * pageSize
+      const to = from + pageSize - 1
+
+      let request = supabase
+        .from('members')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to)
+
+      const q = query.trim()
+      if (q) {
+        // Search across name, email, phone
+        // Using PostgREST or() filter
+        request = request.or(
+          `first_name.ilike.%${q}%,last_name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%`
+        )
+      }
+
+      const { data, error: qError, count } = await request
+      if (qError) throw qError
+      setMembers((data || []) as Member[])
+      setTotal(count || 0)
+    } catch (err: any) {
+      console.error('Failed to load members', err)
+      setError('Failed to load members. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function fetchStats() {
+    try {
+      // Total members
+      const totalReq = supabase
+        .from('members')
+        .select('id', { count: 'exact', head: true })
+
+      // Active
+      const activeReq = supabase
+        .from('members')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'active')
+
+      // Inactive
+      const inactiveReq = supabase
+        .from('members')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'inactive')
+
+      // New this month
+      const now = new Date()
+      const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+      const newReq = supabase
+        .from('members')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', firstOfMonth)
+
+      const [totalRes, activeRes, inactiveRes, newRes] = await Promise.all([
+        totalReq,
+        activeReq,
+        inactiveReq,
+        newReq,
+      ])
+
+      setTotalMembers(totalRes.count || 0)
+      setActiveMembers(activeRes.count || 0)
+      setInactiveMembers(inactiveRes.count || 0)
+      setNewThisMonth(newRes.count || 0)
+    } catch (err) {
+      console.error('Failed to load stats', err)
+    }
+  }
+
+  // Debounce search and refetch on page/search changes
+  useEffect(() => {
+    const t = setTimeout(() => {
+      void fetchMembers(page, searchQuery)
+    }, 300)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, searchQuery])
+
+  // Initial stats
+  useEffect(() => {
+    void fetchStats()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <Sidebar>
@@ -72,7 +183,10 @@ export default function MembersPage() {
               type="text"
               placeholder="Search members by name, email, phone..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setPage(1)
+                setSearchQuery(e.target.value)
+              }}
               className="input-field pl-10 w-full"
             />
           </div>
@@ -81,13 +195,20 @@ export default function MembersPage() {
 
       {/* Main Content */}
       <div className="p-6">
+        {/* Error Alert */}
+        {error && (
+          <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Total Members</p>
-                <p className="text-2xl font-bold text-gray-900">1,300+</p>
+                <p className="text-2xl font-bold text-gray-900">{totalMembers.toLocaleString()}</p>
               </div>
               <UsersIcon className="w-8 h-8 text-blue-500" />
             </div>
@@ -97,7 +218,7 @@ export default function MembersPage() {
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Active</p>
-                <p className="text-2xl font-bold text-green-600">1,250</p>
+                <p className="text-2xl font-bold text-green-600">{activeMembers.toLocaleString()}</p>
               </div>
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             </div>
@@ -107,7 +228,7 @@ export default function MembersPage() {
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">New This Month</p>
-                <p className="text-2xl font-bold text-blue-600">15</p>
+                <p className="text-2xl font-bold text-blue-600">{newThisMonth.toLocaleString()}</p>
               </div>
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
             </div>
@@ -117,35 +238,122 @@ export default function MembersPage() {
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Inactive</p>
-                <p className="text-2xl font-bold text-gray-500">50</p>
+                <p className="text-2xl font-bold text-gray-500">{inactiveMembers.toLocaleString()}</p>
               </div>
               <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
             </div>
           </div>
         </div>
 
-        {/* Empty State */}
-        <div className="bg-white rounded-lg border border-gray-200 p-12">
-          <div className="text-center">
-            <UsersIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">No members found</h3>
-            <p className="mt-2 text-sm text-gray-500">
-              Get started by adding your first member to the MDPVA database.
-            </p>
-            <div className="mt-6">
-              <button 
-                onClick={() => {
-                  console.log('Add Your First Member button clicked')
-                  setIsAddModalOpen(true)
-                }}
-                className="btn-primary flex items-center mx-auto"
-              >
-                <PlusIcon className="w-4 h-4 mr-2" />
-                Add Your First Member
-              </button>
+        {/* Members List / Empty State */}
+        {loading ? (
+          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center text-gray-600">
+            Loading members...
+          </div>
+        ) : members.length === 0 ? (
+          <div className="bg-white rounded-lg border border-gray-200 p-12">
+            <div className="text-center">
+              <UsersIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-4 text-lg font-medium text-gray-900">No members found</h3>
+              <p className="mt-2 text-sm text-gray-500">
+                {searchQuery ? 'Try a different search.' : 'Get started by adding your first member to the MDPVA database.'}
+              </p>
+              {!searchQuery && (
+                <div className="mt-6">
+                  <button 
+                    onClick={() => {
+                      console.log('Add Your First Member button clicked')
+                      setIsAddModalOpen(true)
+                    }}
+                    className="btn-primary flex items-center mx-auto"
+                  >
+                    <PlusIcon className="w-4 h-4 mr-2" />
+                    Add Your First Member
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {members.map((m) => (
+                    <tr key={m.id || m.member_id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="h-10 w-10 rounded-full bg-gray-100 overflow-hidden mr-3 flex items-center justify-center">
+                            {m.profile_photo_url ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={m.profile_photo_url} alt={`${m.first_name} ${m.last_name}`} className="h-10 w-10 object-cover" />
+                            ) : (
+                              <div className="text-sm text-gray-500">{m.first_name.charAt(0)}{m.last_name.charAt(0)}</div>
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{m.first_name} {m.last_name}</div>
+                            <div className="text-xs text-gray-500 font-mono">{m.member_id}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{m.email}</div>
+                        <div className="text-sm text-gray-500">{m.phone}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{m.city}</div>
+                        <div className="text-sm text-gray-500">{m.state}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          m.status === 'active' ? 'bg-green-100 text-green-800' :
+                          m.status === 'inactive' ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {m.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {m.created_at ? new Date(m.created_at).toLocaleDateString() : '-'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="px-6 py-3 flex items-center justify-between border-t bg-gray-50">
+              <div className="text-sm text-gray-600">Total: {total.toLocaleString()}</div>
+              <div className="flex items-center space-x-3">
+                <button
+                  className="btn-secondary"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                >
+                  Previous
+                </button>
+                <div className="text-sm text-gray-700">Page {page} of {Math.max(1, Math.ceil(total / pageSize))}</div>
+                <button
+                  className="btn-secondary"
+                  onClick={() => setPage(p => (p < Math.ceil(total / pageSize) ? p + 1 : p))}
+                  disabled={page >= Math.ceil(total / pageSize)}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Add Member Modal */}
         <AddMemberModal
