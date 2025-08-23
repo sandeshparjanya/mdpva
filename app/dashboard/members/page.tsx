@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Sidebar from '../../../components/Sidebar'
 import AddMemberModal from '../../../components/AddMemberModal'
 import { 
@@ -9,7 +9,9 @@ import {
   MagnifyingGlassIcon,
   PencilSquareIcon,
   TrashIcon,
-  XMarkIcon
+  XMarkIcon,
+  DocumentDuplicateIcon,
+  CheckCircleIcon
 } from '@heroicons/react/24/outline'
 import Image from 'next/image'
 import { Member } from '../../../lib/memberUtils'
@@ -35,10 +37,49 @@ export default function MembersPage() {
   const [inactiveMembers, setInactiveMembers] = useState(0)
   const [newThisMonth, setNewThisMonth] = useState(0)
 
+  // Quick filter (applied by clicking stat cards)
+  const [quickFilter, setQuickFilter] = useState<'all' | 'active' | 'inactive' | 'newThisMonth'>('all')
+  // Transient highlight for stat cards
+  const [flashCard, setFlashCard] = useState<'all' | 'active' | 'inactive' | 'newThisMonth' | null>(null)
+
+  // Sort state (global, applies to current list)
+  type SortKey = 'created_desc' | 'created_asc' | 'name_asc' | 'name_desc' | 'updated_desc' | 'id_desc' | 'id_asc'
+  const [sortBy, setSortBy] = useState<SortKey>('created_desc')
+
   // Quick Peek state
   const [selectedMember, setSelectedMember] = useState<Member | null>(null)
   const [isPeekOpen, setIsPeekOpen] = useState(false)
   const [confirmTarget, setConfirmTarget] = useState<Member | null>(null)
+  // Copy feedback state
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const copyTimeoutRef = useRef<number | null>(null)
+  const flashTimerRef = useRef<number | null>(null)
+
+  // Cleanup copy timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        window.clearTimeout(copyTimeoutRef.current)
+      }
+      if (flashTimerRef.current) {
+        window.clearTimeout(flashTimerRef.current)
+      }
+    }
+  }, [])
+
+  // Load saved sort from localStorage (if any)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('membersSortBy') as SortKey | null
+      if (saved) setSortBy(saved)
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Persist sort choice
+  useEffect(() => {
+    try { localStorage.setItem('membersSortBy', sortBy) } catch {}
+  }, [sortBy])
 
   const handleAddMember = (newMember: Member) => {
     setMembers(prev => [newMember, ...prev])
@@ -128,6 +169,20 @@ export default function MembersPage() {
 
   const supabase = useMemo(() => createClient(), [])
 
+  // Handle stat card click: set filter and show a brief highlight
+  function handleStatClick(type: 'all' | 'active' | 'inactive' | 'newThisMonth') {
+    setQuickFilter(type)
+    setPage(1)
+    setFlashCard(type)
+    if (flashTimerRef.current) window.clearTimeout(flashTimerRef.current)
+    flashTimerRef.current = window.setTimeout(() => setFlashCard(null), 800)
+  }
+
+  function handleSortChange(next: SortKey) {
+    setSortBy(next)
+    setPage(1)
+  }
+
   async function fetchMembers(targetPage: number, query: string) {
     try {
       setLoading(true)
@@ -139,16 +194,61 @@ export default function MembersPage() {
         .from('members')
         .select('*', { count: 'exact' })
         .is('deleted_at', null)  // Only get non-deleted members
-        .order('created_at', { ascending: false })
         .range(from, to)
 
       const q = query.trim()
       if (q) {
-        // Search across name, email, phone
-        // Using PostgREST or() filter
-        request = request.or(
-          `first_name.ilike.%${q}%,last_name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%`
-        )
+        const upper = q.toUpperCase()
+        if (/^MDPVA/i.test(q)) {
+          // Treat any 'MDPVA' query as a prefix search on member_id
+          request = request.ilike('member_id', `${upper}%`)
+        } else {
+          // General fuzzy search across fields including member_id
+          request = request.or(
+            `first_name.ilike.%${q}%,last_name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%,member_id.ilike.%${q}%`
+          )
+        }
+      }
+
+      // Apply quick filter from stat cards
+      if (quickFilter === 'active') {
+        request = request.eq('status', 'active')
+      } else if (quickFilter === 'inactive') {
+        request = request.eq('status', 'inactive')
+      } else if (quickFilter === 'newThisMonth') {
+        const now = new Date()
+        const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+        request = request.gte('created_at', firstOfMonth)
+      }
+
+      // Apply sort
+      switch (sortBy) {
+        case 'created_asc':
+          request = request.order('created_at', { ascending: true }).order('member_id', { ascending: true })
+          break
+        case 'name_asc':
+          request = request
+            .order('last_name', { ascending: true, nullsFirst: true })
+            .order('first_name', { ascending: true, nullsFirst: true })
+          break
+        case 'name_desc':
+          request = request
+            .order('last_name', { ascending: false, nullsFirst: false })
+            .order('first_name', { ascending: false, nullsFirst: false })
+          break
+        case 'updated_desc':
+          request = request.order('updated_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false })
+          break
+        case 'id_asc':
+          request = request.order('member_id', { ascending: true })
+          break
+        case 'id_desc':
+          request = request.order('member_id', { ascending: false })
+          break
+        case 'created_desc':
+        default:
+          request = request.order('created_at', { ascending: false }).order('member_id', { ascending: false })
+          break
       }
 
       const { data, error: qError, count } = await request
@@ -217,7 +317,7 @@ export default function MembersPage() {
     }, 300)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, searchQuery])
+  }, [page, searchQuery, quickFilter, sortBy])
 
   // Initial stats
   useEffect(() => {
@@ -263,15 +363,15 @@ export default function MembersPage() {
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="mt-6">
-          <div className="relative max-w-md">
+        {/* Search + Sort Bar */}
+        <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="relative sm:max-w-md w-full">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
             </div>
             <input
               type="text"
-              placeholder="Search members by name, email, phone..."
+              placeholder="Search members by name, email, phone, or ID..."
               value={searchQuery}
               onChange={(e) => {
                 setPage(1)
@@ -279,6 +379,23 @@ export default function MembersPage() {
               }}
               className="input-field pl-10 w-full"
             />
+          </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor="sortBy" className="text-sm text-gray-600 whitespace-nowrap">Sort by</label>
+            <select
+              id="sortBy"
+              className="input-field pr-10 min-w-[220px]"
+              value={sortBy}
+              onChange={(e) => handleSortChange(e.target.value as SortKey)}
+            >
+              <option value="created_desc">Newest first</option>
+              <option value="created_asc">Oldest first</option>
+              <option value="name_asc">Name A–Z</option>
+              <option value="name_desc">Name Z–A</option>
+              <option value="updated_desc">Recently updated</option>
+              <option value="id_desc">Member ID high → low</option>
+              <option value="id_asc">Member ID low → high</option>
+            </select>
           </div>
         </div>
       </div>
@@ -294,7 +411,13 @@ export default function MembersPage() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div
+            className={`bg-white rounded-lg border p-4 ${flashCard === 'all' ? 'ring-2 ring-blue-500 border-blue-300' : 'border-gray-200 hover:shadow-md cursor-pointer'}`}
+            onClick={() => handleStatClick('all')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter') { handleStatClick('all') } }}
+          >
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Total Members</p>
@@ -304,7 +427,13 @@ export default function MembersPage() {
             </div>
           </div>
           
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div
+            className={`bg-white rounded-lg border p-4 ${flashCard === 'active' ? 'ring-2 ring-blue-500 border-blue-300' : 'border-gray-200 hover:shadow-md cursor-pointer'}`}
+            onClick={() => handleStatClick('active')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter') { handleStatClick('active') } }}
+          >
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Active</p>
@@ -314,7 +443,13 @@ export default function MembersPage() {
             </div>
           </div>
           
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div
+            className={`bg-white rounded-lg border p-4 ${flashCard === 'newThisMonth' ? 'ring-2 ring-blue-500 border-blue-300' : 'border-gray-200 hover:shadow-md cursor-pointer'}`}
+            onClick={() => handleStatClick('newThisMonth')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter') { handleStatClick('newThisMonth') } }}
+          >
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">New This Month</p>
@@ -324,7 +459,13 @@ export default function MembersPage() {
             </div>
           </div>
           
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div
+            className={`bg-white rounded-lg border p-4 ${flashCard === 'inactive' ? 'ring-2 ring-blue-500 border-blue-300' : 'border-gray-200 hover:shadow-md cursor-pointer'}`}
+            onClick={() => handleStatClick('inactive')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter') { handleStatClick('inactive') } }}
+          >
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Inactive</p>
@@ -334,6 +475,37 @@ export default function MembersPage() {
             </div>
           </div>
         </div>
+
+        {/* Active Quick Filter Indicator */}
+        {quickFilter !== 'all' && (
+          <div className="mb-4">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 mr-2">
+              Filter: {quickFilter === 'newThisMonth' ? 'New This Month' : quickFilter.charAt(0).toUpperCase() + quickFilter.slice(1)}
+            </span>
+            <button
+              className="text-sm text-blue-600 hover:underline"
+              onClick={() => { setQuickFilter('all'); setPage(1) }}
+            >
+              Clear
+            </button>
+          </div>
+        )}
+
+        {/* Sort indicator (only when not default) */}
+        {sortBy !== 'created_desc' && (
+          <div className="mb-4 -mt-2">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200 mr-2">
+              Sort: {
+                sortBy === 'created_asc' ? 'Oldest first' :
+                sortBy === 'name_asc' ? 'Name A–Z' :
+                sortBy === 'name_desc' ? 'Name Z–A' :
+                sortBy === 'updated_desc' ? 'Recently updated' :
+                sortBy === 'id_asc' ? 'Member ID low → high' :
+                'Member ID high → low'
+              }
+            </span>
+          </div>
+        )}
 
         {/* Members List / Empty State */}
         {loading ? (
@@ -405,7 +577,41 @@ export default function MembersPage() {
                           </div>
                           <div>
                             <div className="text-sm font-medium text-gray-900">{m.first_name} {m.last_name}</div>
-                            <div className="text-xs text-gray-500 font-mono">{m.member_id}</div>
+                            <div className="text-xs text-gray-500 font-mono flex items-center gap-1">
+                              <span>{m.member_id}</span>
+                              <button
+                                type="button"
+                                className={`transition-opacity hover:text-gray-700 ${copiedId === m.member_id ? 'opacity-100 text-green-600' : 'opacity-0 group-hover:opacity-100'}`}
+                                title={copiedId === m.member_id ? 'Copied!' : 'Copy member ID'}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  const id = m.member_id
+                                  const doCopy = async () => {
+                                    try {
+                                      await navigator.clipboard?.writeText(id)
+                                    } catch (_) {
+                                      // Fallback copy method
+                                      const ta = document.createElement('textarea')
+                                      ta.value = id
+                                      document.body.appendChild(ta)
+                                      ta.select()
+                                      try { document.execCommand('copy') } finally { document.body.removeChild(ta) }
+                                    }
+                                    setCopiedId(id)
+                                    if (copyTimeoutRef.current) window.clearTimeout(copyTimeoutRef.current)
+                                    copyTimeoutRef.current = window.setTimeout(() => setCopiedId(null), 1500)
+                                  }
+                                  void doCopy()
+                                }}
+                              >
+                                {copiedId === m.member_id ? (
+                                  <CheckCircleIcon className="w-4 h-4" aria-hidden="true" />
+                                ) : (
+                                  <DocumentDuplicateIcon className="w-4 h-4" aria-hidden="true" />
+                                )}
+                                <span className="sr-only">{copiedId === m.member_id ? 'Copied' : 'Copy member ID'}</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </td>

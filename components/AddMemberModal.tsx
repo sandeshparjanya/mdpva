@@ -47,7 +47,8 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
     city: '',
     state: '',
     area: '',
-    notes: ''
+    notes: '',
+    status: 'active'
   })
 
   // Initialize when modal opens
@@ -72,7 +73,8 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
         city: '',
         state: '',
         area: '',
-        notes: ''
+        notes: '',
+        status: 'active'
       })
       setProfilePhoto(null)
       setPhotoPreview('')
@@ -94,7 +96,8 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
         city: initialMember.city || '',
         state: initialMember.state || '',
         area: initialMember.area || '',
-        notes: initialMember.notes || ''
+        notes: initialMember.notes || '',
+        status: initialMember.status || 'active'
       })
       setProfilePhoto(null)
       setPhotoPreview(initialMember.profile_photo_url || '')
@@ -282,7 +285,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
           state: formData.state.trim(),
           profile_photo_url: photoUrl,
           notes: formData.notes.trim() || null,
-          status: 'active'
+          status: (formData.status === 'inactive' ? 'inactive' : 'active')
         }
 
         const { data, error } = await supabase
@@ -327,7 +330,8 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
           city: '',
           state: '',
           area: '',
-          notes: ''
+          notes: '',
+          status: 'active'
         })
         setProfilePhoto(null)
         setPhotoPreview('')
@@ -361,6 +365,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
           state: formData.state.trim(),
           profile_photo_url: photoUrl,
           notes: formData.notes.trim() || null,
+          status: (formData.status === 'inactive' ? 'inactive' : 'active'),
           updated_at: new Date().toISOString()
         }
 
@@ -558,6 +563,23 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
                   className="input-field"
                   placeholder="Enter business name (optional)"
                 />
+              </div>
+            </div>
+
+            {/* Status */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status *
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => handleInputChange('status', e.target.value)}
+                  className="input-field"
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
               </div>
             </div>
 
