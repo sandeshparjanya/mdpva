@@ -114,7 +114,7 @@ export async function GET(req: NextRequest) {
     // Columns (CSV default set; also reuse for PDF base fields)
     const defaultColumns = [
       'member_id', 'first_name', 'last_name', 'status', 'email', 'phone', 'profession', 'business_name',
-      'address_line1', 'address_line2', 'area', 'city', 'state', 'pincode', 'created_at', 'updated_at'
+      'address_line1', 'address_line2', 'area', 'city', 'state', 'pincode', 'dob', 'blood_group', 'created_at', 'updated_at'
     ] as const
     const allExtra = ['profile_photo_url', 'notes'] as const
     const columns = columnsMode === 'all' ? [...defaultColumns, ...allExtra] : [...defaultColumns]

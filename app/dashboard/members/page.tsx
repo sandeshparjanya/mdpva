@@ -399,7 +399,7 @@ export default function MembersPage() {
               </button>
               {exportMenuOpen && (
                 <div
-                  className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-20 py-1"
+                  className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-30 py-1"
                   onMouseLeave={() => setHoveredExportType(null)}
                 >
                   {/* CSV submenu trigger */}
@@ -415,7 +415,7 @@ export default function MembersPage() {
                       <ChevronRightIcon className="w-4 h-4 text-gray-400" />
                     </button>
                     {hoveredExportType === 'csv' && (
-                      <div className="absolute top-0 left-full ml-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-30 py-1">
+                      <div className="absolute top-0 right-full mr-1 w-64 max-h-[70vh] overflow-auto bg-white border border-gray-200 rounded-md shadow-lg z-40 py-1">
                         <button
                           className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
                           onClick={() => handleExport('current', 'csv')}
@@ -445,7 +445,7 @@ export default function MembersPage() {
                       <ChevronRightIcon className="w-4 h-4 text-gray-400" />
                     </button>
                     {hoveredExportType === 'pdf' && (
-                      <div className="absolute top-0 left-full ml-1 w-72 bg-white border border-gray-200 rounded-md shadow-lg z-30 py-1">
+                      <div className="absolute top-0 right-full mr-1 w-72 max-h-[70vh] overflow-auto bg-white border border-gray-200 rounded-md shadow-lg z-40 py-1">
                         <button
                           className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
                           onClick={() => handleExport('current', 'pdf')}

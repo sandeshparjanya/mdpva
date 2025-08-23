@@ -233,6 +233,9 @@ export interface Member {
   city: string
   area?: string
   state: string
+  // New optional fields
+  dob?: string | null
+  blood_group?: string | null
   status: 'active' | 'inactive' | 'suspended'
   profile_photo_url?: string
   notes?: string

@@ -45,6 +45,28 @@ BEGIN
     END IF;
 END $$;
 
+-- Safe migration: add dob column if it does not exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'members' AND column_name = 'dob'
+    ) THEN
+        ALTER TABLE members ADD COLUMN dob DATE;
+    END IF;
+END $$;
+
+-- Safe migration: add blood_group column if it does not exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'members' AND column_name = 'blood_group'
+    ) THEN
+        ALTER TABLE members ADD COLUMN blood_group TEXT;
+    END IF;
+END $$;
+
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$

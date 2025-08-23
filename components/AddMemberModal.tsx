@@ -32,6 +32,18 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
   const [photoPreview, setPhotoPreview] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [availableAreas, setAvailableAreas] = useState<string[]>([])
+  const allowedBloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+  const toDateInputValue = (v?: string | null) => {
+    if (!v) return ''
+    // If already in YYYY-MM-DD, return as-is
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v
+    const d = new Date(v)
+    if (isNaN(d.getTime())) return ''
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+  }
 
   // Form state
   const [formData, setFormData] = useState({
@@ -48,7 +60,9 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
     state: '',
     area: '',
     notes: '',
-    status: 'active'
+    status: 'active',
+    dob: '',
+    bloodGroup: ''
   })
 
   // Initialize when modal opens
@@ -74,7 +88,9 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
         state: '',
         area: '',
         notes: '',
-        status: 'active'
+        status: 'active',
+        dob: '',
+        bloodGroup: ''
       })
       setProfilePhoto(null)
       setPhotoPreview('')
@@ -97,7 +113,9 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
         state: initialMember.state || '',
         area: initialMember.area || '',
         notes: initialMember.notes || '',
-        status: initialMember.status || 'active'
+        status: initialMember.status || 'active',
+        dob: toDateInputValue(initialMember.dob ?? null),
+        bloodGroup: initialMember.blood_group || ''
       })
       setProfilePhoto(null)
       setPhotoPreview(initialMember.profile_photo_url || '')
@@ -215,6 +233,30 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
       newErrors.phone = 'Please enter a valid phone number'
     }
 
+    // DOB validation (optional, must be valid date and not in the future)
+    if (formData.dob) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(formData.dob)) {
+        newErrors.dob = 'Please enter DOB in YYYY-MM-DD format'
+      } else {
+        const d = new Date(formData.dob + 'T00:00:00')
+        if (isNaN(d.getTime())) {
+          newErrors.dob = 'Invalid date'
+        } else {
+          const today = new Date()
+          today.setHours(0,0,0,0)
+          if (d > today) newErrors.dob = 'DOB cannot be in the future'
+        }
+      }
+    }
+
+    // Blood group validation (optional)
+    if (formData.bloodGroup) {
+      const bg = formData.bloodGroup.toUpperCase()
+      if (!allowedBloodGroups.includes(bg)) {
+        newErrors.bloodGroup = 'Invalid blood group'
+      }
+    }
+
     // Check duplicates (skip if unchanged in edit mode)
     if (formData.email && !newErrors.email) {
       const changed = mode === 'edit' && initialMember ? (formData.email.toLowerCase().trim() !== initialMember.email.toLowerCase()) : true
@@ -285,6 +327,8 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
           state: formData.state.trim(),
           profile_photo_url: photoUrl,
           notes: formData.notes.trim() || null,
+          dob: formData.dob ? formData.dob : null,
+          blood_group: formData.bloodGroup ? formData.bloodGroup.toUpperCase() : null,
           status: (formData.status === 'inactive' ? 'inactive' : 'active')
         }
 
@@ -331,7 +375,9 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
           state: '',
           area: '',
           notes: '',
-          status: 'active'
+          status: 'active',
+          dob: '',
+          bloodGroup: ''
         })
         setProfilePhoto(null)
         setPhotoPreview('')
@@ -366,6 +412,8 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
           profile_photo_url: photoUrl,
           notes: formData.notes.trim() || null,
           status: (formData.status === 'inactive' ? 'inactive' : 'active'),
+          dob: formData.dob ? formData.dob : null,
+          blood_group: formData.bloodGroup ? formData.bloodGroup.toUpperCase() : null,
           updated_at: new Date().toISOString()
         }
 
@@ -532,6 +580,39 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
                   placeholder="Enter phone number"
                 />
                 {errors.phone && <p className="text-sm text-red-600 mt-1">{errors.phone}</p>}
+              </div>
+            </div>
+
+            {/* DOB & Blood Group */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  value={formData.dob}
+                  onChange={(e) => handleInputChange('dob', e.target.value)}
+                  className={`input-field ${errors.dob ? 'border-red-300' : ''}`}
+                />
+                {errors.dob && <p className="text-sm text-red-600 mt-1">{errors.dob}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Blood Group
+                </label>
+                <select
+                  value={formData.bloodGroup}
+                  onChange={(e) => handleInputChange('bloodGroup', e.target.value)}
+                  className={`input-field ${errors.bloodGroup ? 'border-red-300' : ''}`}
+                >
+                  <option value="">Select blood group (optional)</option>
+                  {allowedBloodGroups.map(bg => (
+                    <option key={bg} value={bg}>{bg}</option>
+                  ))}
+                </select>
+                {errors.bloodGroup && <p className="text-sm text-red-600 mt-1">{errors.bloodGroup}</p>}
               </div>
             </div>
 
