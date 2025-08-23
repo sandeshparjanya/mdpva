@@ -200,7 +200,6 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
     if (!formData.phone.trim()) newErrors.phone = 'Phone is required'
     if (!formData.addressLine1.trim()) newErrors.addressLine1 = 'Address is required'
     if (!formData.pincode.trim()) newErrors.pincode = 'Pincode is required'
-    if (mode === 'add' && !profilePhoto) newErrors.photo = 'Profile photo is required'
     if (availableAreas.length > 0 && !formData.area) newErrors.area = 'Please select an area'
 
     // Email validation
@@ -254,12 +253,16 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
       const supabase = createClient()
 
       if (mode === 'add') {
-        // Upload photo first (required in add)
-        const photoResult = await uploadProfilePhoto(profilePhoto!, memberID)
-        if (!photoResult.success) {
-          setErrors({ photo: photoResult.error || 'Failed to upload photo' })
-          setIsLoading(false)
-          return
+        // Photo optional: upload only if provided
+        let photoUrl: string | null = null
+        if (profilePhoto) {
+          const photoResult = await uploadProfilePhoto(profilePhoto, memberID)
+          if (!photoResult.success) {
+            setErrors({ photo: photoResult.error || 'Failed to upload photo' })
+            setIsLoading(false)
+            return
+          }
+          photoUrl = photoResult.url || null
         }
 
         // Create member record
@@ -277,7 +280,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
           city: formData.city.trim(),
           area: formData.area.trim() || null,
           state: formData.state.trim(),
-          profile_photo_url: photoResult.url,
+          profile_photo_url: photoUrl,
           notes: formData.notes.trim() || null,
           status: 'active'
         }
@@ -331,8 +334,8 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
         setMemberID('')
         setErrors({})
       } else if (mode === 'edit' && initialMember) {
-        // Upload photo only if changed; otherwise keep existing
-        let photoUrl = initialMember.profile_photo_url || ''
+        // Upload photo only if changed; otherwise keep existing (null when absent)
+        let photoUrl: string | null = initialMember.profile_photo_url ?? null
         if (profilePhoto) {
           const photoResult = await uploadProfilePhoto(profilePhoto, initialMember.member_id)
           if (!photoResult.success) {
@@ -434,7 +437,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
             {/* Profile Photo */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Profile Photo{mode === 'add' ? ' *' : ''}
+                Profile Photo (optional)
               </label>
               <div className="flex items-center space-x-4">
                 <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">

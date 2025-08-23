@@ -11,6 +11,7 @@ import {
   TrashIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
+import Image from 'next/image'
 import { Member } from '../../../lib/memberUtils'
 import { createClient } from '../../../lib/supabase'
 
@@ -370,6 +371,7 @@ export default function MembersPage() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profession</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -388,10 +390,15 @@ export default function MembersPage() {
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-full bg-gray-100 overflow-hidden mr-3 flex items-center justify-center">
+                          <div className="h-10 w-10 rounded-md bg-gray-100 overflow-hidden mr-3 flex items-center justify-center">
                             {m.profile_photo_url ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={m.profile_photo_url} alt={`${m.first_name} ${m.last_name}`} className="h-10 w-10 object-cover" />
+                              <Image
+                                src={m.profile_photo_url}
+                                alt={`${m.first_name} ${m.last_name}`}
+                                width={40}
+                                height={40}
+                                className="h-10 w-10 object-cover"
+                              />
                             ) : (
                               <div className="text-sm text-gray-500">{m.first_name.charAt(0)}{m.last_name.charAt(0)}</div>
                             )}
@@ -401,6 +408,9 @@ export default function MembersPage() {
                             <div className="text-xs text-gray-500 font-mono">{m.member_id}</div>
                           </div>
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 capitalize">{m.profession}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{m.email}</div>
@@ -531,10 +541,15 @@ export default function MembersPage() {
               <div className="p-4 space-y-4 overflow-y-auto h-[calc(100%-56px)]">
                 {/* Avatar */}
                 <div className="flex items-center space-x-3">
-                  <div className="h-14 w-14 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
+                  <div className="h-14 w-14 rounded-md bg-gray-100 overflow-hidden flex items-center justify-center">
                     {selectedMember.profile_photo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={selectedMember.profile_photo_url} alt={`${selectedMember.first_name} ${selectedMember.last_name}`} className="h-14 w-14 object-cover" />
+                      <Image
+                        src={selectedMember.profile_photo_url}
+                        alt={`${selectedMember.first_name} ${selectedMember.last_name}`}
+                        width={56}
+                        height={56}
+                        className="h-14 w-14 object-contain"
+                      />
                     ) : (
                       <div className="text-base text-gray-500">
                         {selectedMember.first_name.charAt(0)}{selectedMember.last_name.charAt(0)}
