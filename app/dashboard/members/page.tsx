@@ -114,6 +114,30 @@ export default function MembersPage() {
     setIsEditModalOpen(true)
   }
 
+  // Hover actions overlay rendered within the hovered cell (no sticky actions column)
+  function RowActions({ member }: { member: Member }) {
+    return (
+      <div className="absolute top-1/2 -translate-y-1/2 right-3 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+        <button
+          className="text-blue-600 hover:text-blue-800 inline-flex items-center text-sm bg-white/90 rounded px-2 py-1 pointer-events-auto"
+          onClick={(e) => { e.stopPropagation(); openEdit(member) }}
+          title="Edit"
+        >
+          <PencilSquareIcon className="w-4 h-4 mr-1" /> Edit
+        </button>
+        <button
+          type="button"
+          className="text-red-600 hover:text-red-800 inline-flex items-center text-sm bg-white/90 rounded px-2 py-1 disabled:opacity-50 pointer-events-auto"
+          onClick={(e) => { e.stopPropagation(); setConfirmTarget(member) }}
+          disabled={loading}
+          title="Delete"
+        >
+          <TrashIcon className="w-4 h-4 mr-1" /> Delete
+        </button>
+      </div>
+    )
+  }
+
   function openPeek(member: Member) {
     setSelectedMember(member)
     setIsPeekOpen(true)
@@ -669,14 +693,13 @@ export default function MembersPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {members.map((m) => (
                     <tr
                       key={m.id || m.member_id}
-                      className="group hover:bg-gray-50 cursor-pointer"
+                      className="relative group hover:bg-gray-50 cursor-pointer"
                       onClick={() => openPeek(m)}
                       tabIndex={0}
                       onKeyDown={(e) => { if (e.key === 'Enter') openPeek(m) }}
@@ -734,48 +757,40 @@ export default function MembersPage() {
                               </button>
                             </div>
                           </div>
+
+                          <RowActions member={m} />
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 capitalize">{m.profession}</div>
+                        <div className="relative">
+                          <div className="text-sm text-gray-900 capitalize">{m.profession}</div>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{m.email}</div>
-                        <div className="text-sm text-gray-500">{m.phone}</div>
+                        <div className="relative">
+                          <div className="text-sm text-gray-900">{m.email}</div>
+                          <div className="text-sm text-gray-500">{m.phone}</div>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{m.area || m.city}</div>
-                        <div className="text-sm text-gray-500">{m.area ? `${m.city}, ${m.state}` : m.state}</div>
+                        <div className="relative">
+                          <div className="text-sm text-gray-900">{m.area || m.city}</div>
+                          <div className="text-sm text-gray-500">{m.area ? `${m.city}, ${m.state}` : m.state}</div>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          m.status === 'active' ? 'bg-green-100 text-green-800' :
-                          m.status === 'inactive' ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {m.status}
-                        </span>
+                        <div className="relative">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            m.status === 'active' ? 'bg-green-100 text-green-800' :
+                            m.status === 'inactive' ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {m.status}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {m.created_at ? new Date(m.created_at).toLocaleDateString() : '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="inline-flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            className="text-blue-600 hover:text-blue-800 inline-flex items-center text-sm"
-                            onClick={(e) => { e.stopPropagation(); openEdit(m) }}
-                            title="Edit"
-                          >
-                            <PencilSquareIcon className="w-5 h-5 mr-1" /> Edit
-                          </button>
-                          <button
-                            type="button"
-                            className="text-red-600 hover:text-red-800 inline-flex items-center text-sm disabled:opacity-50"
-                            onClick={(e) => { e.stopPropagation(); setConfirmTarget(m) }}
-                            disabled={loading}
-                            title="Delete"
-                          >
-                            <TrashIcon className="w-5 h-5 mr-1" /> Delete
-                          </button>
+                        <div className="relative">
+                          {m.created_at ? new Date(m.created_at).toLocaleDateString() : '-'}
                         </div>
                       </td>
                     </tr>
