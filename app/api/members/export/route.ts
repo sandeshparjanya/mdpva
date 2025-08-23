@@ -137,16 +137,33 @@ export async function GET(req: NextRequest) {
         first_name: string | null
         last_name: string | null
         phone: string | null
-        profession: string | null
+        business_name: string | null
+        address_line1: string | null
+        address_line2: string | null
+        area: string | null
         city: string | null
         state: string | null
+        pincode: string | null
         status: string | null
         created_at: string | null
         profile_photo_url?: string | null
       }
 
       const selectCols = [
-        'member_id', 'first_name', 'last_name', 'phone', 'profession', 'city', 'state', 'status', 'created_at', 'profile_photo_url'
+        'member_id',
+        'first_name',
+        'last_name',
+        'phone',
+        'business_name',
+        'address_line1',
+        'address_line2',
+        'area',
+        'city',
+        'state',
+        'pincode',
+        'status',
+        'created_at',
+        'profile_photo_url',
       ]
 
       const pageSize = 1000
@@ -213,7 +230,8 @@ export async function GET(req: NextRequest) {
 
         const { data, error } = await dataReq
         if (error) throw error
-        const rows = (data as Row[]) || []
+        // Cast via any to avoid TS complaining about Supabase generic typing
+        const rows = ((data as any) as Row[]) || []
         allRows.push(...rows)
         from += pageSize
         if (rows.length < pageSize) {
@@ -228,94 +246,156 @@ export async function GET(req: NextRequest) {
           const u = new URL(url)
           // Replace /object/public/ with /render/image/public/
           u.pathname = u.pathname.replace('/object/public/', '/render/image/public/')
-          u.searchParams.set('width', '96')
-          u.searchParams.set('quality', '70')
+          // Ask Supabase image transform for a portrait-friendly, non-cropping thumbnail
+          // These params are ignored if unsupported by the CDN, but are safe to include
+          u.searchParams.set('width', '108')
+          u.searchParams.set('height', '144')
+          u.searchParams.set('resize', 'contain')
+          u.searchParams.set('background', 'ffffff')
+          u.searchParams.set('quality', '75')
           return u.toString()
         } catch {
           return url
         }
       }
 
-      // Styles
+      // Styles for portrait A4 table layout
       const styles = StyleSheet.create({
         page: {
-          paddingTop: 40, paddingBottom: 40, paddingHorizontal: 32, flexDirection: 'column'
+          paddingTop: 28,
+          paddingBottom: 36,
+          paddingHorizontal: 20,
+          flexDirection: 'column',
         },
-        header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-        headerLeft: { flexDirection: 'row', alignItems: 'center' },
-        logoBox: { width: 50, height: 50, backgroundColor: '#e5e7eb', borderRadius: 4, marginRight: 12 },
-        headerTitleWrap: { flexDirection: 'column' },
-        title: { fontSize: 12, fontWeight: 700 },
-        website: { fontSize: 9, color: '#374151' },
-        headerRight: { fontSize: 8, color: '#4b5563' },
-        grid: { flexDirection: 'row', flexWrap: 'wrap' },
-        card: { width: '25%', padding: 8, flexDirection: 'row' },
-        photo: { width: 64, height: 64, backgroundColor: '#f3f4f6', borderRadius: 4 },
-        meta: { marginLeft: 8, flexGrow: 1 },
-        name: { fontSize: 9, fontWeight: 700 },
-        line: { fontSize: 8, color: '#111827' },
-        footer: { position: 'absolute', bottom: 16, left: 32, right: 32, fontSize: 8, color: '#4b5563', flexDirection: 'row', justifyContent: 'space-between' },
+        header: {
+          marginBottom: 10,
+        },
+        headerRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+        },
+        logoBox: { width: 48, height: 48, backgroundColor: '#e5e7eb', borderRadius: 4, marginRight: 10 },
+        headerTextWrap: { flexDirection: 'column', flexGrow: 1 },
+        headerTitleBlue: { fontSize: 14, color: '#1e3a8a', fontWeight: 700 },
+        headerTitleRed: { fontSize: 14, color: '#dc2626', fontWeight: 700 },
+        subTitle: { fontSize: 9, color: '#374151', marginTop: 2 },
+        table: {
+          borderWidth: 0.5,
+          borderColor: '#9ca3af',
+          marginTop: 56,
+        },
+        row: {
+          flexDirection: 'row',
+        },
+        headerCell: {
+          backgroundColor: '#e5f4ff',
+          fontWeight: 700,
+        },
+        cell: {
+          borderRightWidth: 0.5,
+          borderBottomWidth: 0.5,
+          borderColor: '#9ca3af',
+          paddingVertical: 6,
+          paddingHorizontal: 6,
+          fontSize: 8,
+          justifyContent: 'center',
+        },
+        cMemberId: { width: '16%' },
+        cNameAddr: { width: '58%' },
+        cPhone: { width: '16%' },
+        cPhoto: { width: '10%', alignItems: 'center', justifyContent: 'center' },
+        nameLine: { fontSize: 9, fontWeight: 700 },
+        addrLine: { fontSize: 8 },
+        photo: { width: 54, height: 72, objectFit: 'contain', backgroundColor: '#f3f4f6', borderRadius: 2 },
+        footer: { position: 'absolute', bottom: 12, left: 20, right: 20, fontSize: 8, color: '#4b5563', flexDirection: 'row', justifyContent: 'space-between' },
       })
 
       // Fonts (optional: system fonts usually OK in many viewers)
       // If needed, register a font here via Font.register
 
-      const nowIST = formatInTimeZone(new Date(), 'Asia/Kolkata', 'yyyy-MM-dd HH:mm zzz')
+      const nowIST = formatInTimeZone(new Date(), 'Asia/Kolkata', 'dd-MM-yyyy HH:mm zzz')
 
-      const cards = allRows.map((m, idx) => (
-        React.createElement(
+      // Build table header
+      const tableHeader = React.createElement(
+        View,
+        { style: [styles.row, styles.headerCell] },
+        React.createElement(Text, { style: [styles.cell, styles.cMemberId] }, 'Member ID'),
+        React.createElement(Text, { style: [styles.cell, styles.cNameAddr] }, 'Name & address'),
+        React.createElement(Text, { style: [styles.cell, styles.cPhone] }, 'Phone No'),
+        React.createElement(Text, { style: [styles.cell, styles.cPhoto] }, 'Photo')
+      )
+
+      const tableRows = allRows.map((m, idx) => {
+        const name = `${(m.first_name || '').trim()}${m.last_name ? ' ' + m.last_name.trim() : ''}`.trim()
+        // Build subsequent lines without duplicating the name
+        const parts: string[] = []
+        const norm = (s?: string | null) => (s || '').trim().replace(/\s+/g, ' ').toLowerCase()
+        const nameNorm = norm(name)
+        const pushIfDistinct = (val?: string | null) => {
+          const v = (val || '').trim()
+          if (!v) return
+          const vNorm = v.replace(/\s+/g, ' ').toLowerCase()
+          if (vNorm === nameNorm) return
+          if (parts.some(p => p.trim().replace(/\s+/g, ' ').toLowerCase() === vNorm)) return
+          parts.push(v)
+        }
+        pushIfDistinct(m.business_name)
+        pushIfDistinct(m.address_line1)
+        pushIfDistinct(m.address_line2)
+        const cityState = [m.area || '', m.city || '', m.state || ''].filter(Boolean).join(', ')
+        const pin = m.pincode ? ` ${m.pincode}` : ''
+        pushIfDistinct((cityState + pin).trim())
+
+        return React.createElement(
           View,
-          { key: m.member_id + '-' + idx, style: styles.card },
-          m.profile_photo_url
-            ? React.createElement(Image, { src: toThumb(m.profile_photo_url) || '', style: styles.photo })
-            : React.createElement(View, { style: styles.photo }),
+          { key: m.member_id + '-' + idx, style: styles.row },
+          React.createElement(Text, { style: [styles.cell, styles.cMemberId] }, m.member_id),
           React.createElement(
             View,
-            { style: styles.meta },
-            React.createElement(
-              Text,
-              { style: styles.name },
-              `${m.member_id} · ${(m.first_name || '') + (m.last_name ? ' ' + m.last_name : '')}`
-            ),
-            React.createElement(Text, { style: styles.line }, `Phone: ${m.phone || ''}`),
-            React.createElement(
-              Text,
-              { style: styles.line },
-              `City/State: ${(m.city || '') + (m.state ? ', ' + m.state : '')}`
-            ),
-            React.createElement(Text, { style: styles.line }, `Profession: ${m.profession || ''}`)
-          )
+            { style: [styles.cell, styles.cNameAddr] },
+            React.createElement(Text, { style: styles.nameLine }, name),
+            React.createElement(Text, { style: styles.addrLine }, parts.join('\n')),
+          ),
+          React.createElement(Text, { style: [styles.cell, styles.cPhone] }, m.phone || ''),
+          React.createElement(
+            View,
+            { style: [styles.cell, styles.cPhoto] },
+            m.profile_photo_url
+              ? React.createElement(Image, { src: toThumb(m.profile_photo_url) || '', style: styles.photo })
+              : React.createElement(View, { style: styles.photo })
+          ),
         )
-      ))
+      })
 
       const PdfDoc = React.createElement(
         Document,
         null,
         React.createElement(
           Page,
-          { size: 'A4', orientation: 'landscape', style: styles.page },
+          { size: 'A4', orientation: 'portrait', style: styles.page },
           // Header
           React.createElement(
             View,
             { style: styles.header, fixed: true },
             React.createElement(
               View,
-              { style: styles.headerLeft },
+              { style: styles.headerRow },
               React.createElement(View, { style: styles.logoBox }),
               React.createElement(
                 View,
-                { style: styles.headerTitleWrap },
-                React.createElement(Text, { style: styles.title }, 'Mysore District Photographers and Videographers Association (MDPVA)'),
-                React.createElement(Text, { style: styles.website }, 'mdpva.com')
+                { style: styles.headerTextWrap },
+                React.createElement(Text, { style: styles.headerTitleBlue }, 'MYSURU DISTRICT PHOTOGRAPHERS &'),
+                React.createElement(Text, { style: styles.headerTitleRed }, 'VIDEOGRAPHERS ASSOCIATION (MDPVA)')
               )
             ),
-            React.createElement(Text, { style: styles.headerRight }, `Active members: ${activeCount}`)
+            React.createElement(Text, { style: styles.subTitle }, 'Members list')
           ),
-          // Grid
+          // Table
           React.createElement(
             View,
-            { style: styles.grid },
-            ...cards
+            { style: styles.table },
+            tableHeader,
+            ...tableRows
           ),
           // Footer
           React.createElement(
