@@ -13,6 +13,7 @@ import {
   DocumentDuplicateIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline'
+import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import Image from 'next/image'
 import { Member } from '../../../lib/memberUtils'
 import { createClient } from '../../../lib/supabase'
@@ -54,6 +55,11 @@ export default function MembersPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const copyTimeoutRef = useRef<number | null>(null)
   const flashTimerRef = useRef<number | null>(null)
+  // Export UI state
+  const [exportMenuOpen, setExportMenuOpen] = useState(false)
+  const [exportBanner, setExportBanner] = useState<string>('')
+  const exportBannerRef = useRef<number | null>(null)
+  const [hoveredExportType, setHoveredExportType] = useState<'csv' | 'pdf' | null>(null)
 
   // Cleanup copy timeout on unmount
   useEffect(() => {
@@ -63,6 +69,9 @@ export default function MembersPage() {
       }
       if (flashTimerRef.current) {
         window.clearTimeout(flashTimerRef.current)
+      }
+      if (exportBannerRef.current) {
+        window.clearTimeout(exportBannerRef.current)
       }
     }
   }, [])
@@ -181,6 +190,38 @@ export default function MembersPage() {
   function handleSortChange(next: SortKey) {
     setSortBy(next)
     setPage(1)
+  }
+
+  function notifyExport(message: string) {
+    setExportBanner(message)
+    if (exportBannerRef.current) window.clearTimeout(exportBannerRef.current)
+    exportBannerRef.current = window.setTimeout(() => setExportBanner(''), 2000)
+  }
+
+  function handleExport(scope: 'current' | 'all', format: 'csv' | 'pdf') {
+    try {
+      setExportMenuOpen(false)
+      const params = new URLSearchParams()
+      params.set('scope', scope)
+      params.set('format', format)
+      params.set('columns', 'default')
+      if (scope === 'current') {
+        params.set('q', searchQuery)
+        params.set('filter', quickFilter)
+        params.set('sort', sortBy)
+      }
+      const url = `/api/members/export?${params.toString()}`
+      // Prefer opening in new tab to not block UI
+      const w = window.open(url, '_blank')
+      if (!w) {
+        // Fallback if popup blocked
+        window.location.href = url
+      }
+      notifyExport('Export started…')
+    } catch (e) {
+      console.error('Export failed to start', e)
+      notifyExport('Failed to start export')
+    }
   }
 
   async function fetchMembers(targetPage: number, query: string) {
@@ -347,9 +388,82 @@ export default function MembersPage() {
 
           {/* Action Buttons */}
           <div className="flex items-center space-x-3">
-            <button className="btn-secondary">
-              Export
-            </button>
+            <div className="relative">
+              <button 
+                className="btn-secondary"
+                onClick={() => setExportMenuOpen(o => !o)}
+                aria-haspopup="menu"
+                aria-expanded={exportMenuOpen}
+              >
+                Export
+              </button>
+              {exportMenuOpen && (
+                <div
+                  className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-20 py-1"
+                  onMouseLeave={() => setHoveredExportType(null)}
+                >
+                  {/* CSV submenu trigger */}
+                  <div className="relative group">
+                    <button
+                      className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-gray-50"
+                      onMouseEnter={() => setHoveredExportType('csv')}
+                      onFocus={() => setHoveredExportType('csv')}
+                      aria-haspopup="menu"
+                      aria-expanded={hoveredExportType === 'csv'}
+                    >
+                      <span>Export as CSV</span>
+                      <ChevronRightIcon className="w-4 h-4 text-gray-400" />
+                    </button>
+                    {hoveredExportType === 'csv' && (
+                      <div className="absolute top-0 left-full ml-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-30 py-1">
+                        <button
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                          onClick={() => handleExport('current', 'csv')}
+                        >
+                          Export current view (CSV)
+                        </button>
+                        <button
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                          onClick={() => handleExport('all', 'csv')}
+                        >
+                          Export all members (CSV)
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* PDF submenu trigger */}
+                  <div className="relative group">
+                    <button
+                      className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-gray-50"
+                      onMouseEnter={() => setHoveredExportType('pdf')}
+                      onFocus={() => setHoveredExportType('pdf')}
+                      aria-haspopup="menu"
+                      aria-expanded={hoveredExportType === 'pdf'}
+                    >
+                      <span>Export as PDF</span>
+                      <ChevronRightIcon className="w-4 h-4 text-gray-400" />
+                    </button>
+                    {hoveredExportType === 'pdf' && (
+                      <div className="absolute top-0 left-full ml-1 w-72 bg-white border border-gray-200 rounded-md shadow-lg z-30 py-1">
+                        <button
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                          onClick={() => handleExport('current', 'pdf')}
+                        >
+                          Export current view (PDF with photos)
+                        </button>
+                        <button
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                          onClick={() => handleExport('all', 'pdf')}
+                        >
+                          Export all members (PDF with photos)
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             <button 
               onClick={() => {
                 console.log('Add Member button clicked')
@@ -406,6 +520,13 @@ export default function MembersPage() {
         {error && (
           <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             {error}
+          </div>
+        )}
+
+        {/* Export banner */}
+        {exportBanner && (
+          <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+            {exportBanner}
           </div>
         )}
 
