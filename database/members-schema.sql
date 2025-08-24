@@ -14,12 +14,14 @@ CREATE TABLE IF NOT EXISTS members (
   address_line2 TEXT,
   pincode TEXT NOT NULL CHECK (pincode ~ '^[0-9]{6}$'),
   city TEXT NOT NULL,
+  area TEXT,
   state TEXT NOT NULL,
   status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'suspended')),
   profile_photo_url TEXT,
   notes TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
 
 -- Create indexes for better performance
@@ -30,6 +32,40 @@ CREATE INDEX IF NOT EXISTS idx_members_status ON members(status);
 CREATE INDEX IF NOT EXISTS idx_members_profession ON members(profession);
 CREATE INDEX IF NOT EXISTS idx_members_pincode ON members(pincode);
 CREATE INDEX IF NOT EXISTS idx_members_created_at ON members(created_at);
+CREATE INDEX IF NOT EXISTS idx_members_active ON members(deleted_at) WHERE deleted_at IS NULL;
+
+-- Safe migration: add area column if it does not exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'members' AND column_name = 'area'
+    ) THEN
+        ALTER TABLE members ADD COLUMN area TEXT;
+    END IF;
+END $$;
+
+-- Safe migration: add dob column if it does not exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'members' AND column_name = 'dob'
+    ) THEN
+        ALTER TABLE members ADD COLUMN dob DATE;
+    END IF;
+END $$;
+
+-- Safe migration: add blood_group column if it does not exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'members' AND column_name = 'blood_group'
+    ) THEN
+        ALTER TABLE members ADD COLUMN blood_group TEXT;
+    END IF;
+END $$;
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()

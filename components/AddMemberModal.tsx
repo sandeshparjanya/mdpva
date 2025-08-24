@@ -20,15 +20,30 @@ interface AddMemberModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: (member: Member) => void
+  mode?: 'add' | 'edit'
+  initialMember?: Member
 }
 
-export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMemberModalProps) {
+export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add', initialMember }: AddMemberModalProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [memberID, setMemberID] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [availableAreas, setAvailableAreas] = useState<string[]>([])
+  const allowedBloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+  const toDateInputValue = (v?: string | null) => {
+    if (!v) return ''
+    // If already in YYYY-MM-DD, return as-is
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v
+    const d = new Date(v)
+    if (isNaN(d.getTime())) return ''
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+  }
 
   // Form state
   const [formData, setFormData] = useState({
@@ -43,16 +58,83 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMember
     pincode: '',
     city: '',
     state: '',
-    notes: ''
+    area: '',
+    notes: '',
+    status: 'active',
+    dob: '',
+    bloodGroup: ''
   })
 
-  // Generate Member ID when modal opens
+  // Initialize when modal opens
   useEffect(() => {
-    if (isOpen && !memberID) {
-      console.log('AddMemberModal: opening, generating member ID')
-      generateMemberID().then(setMemberID)
+    if (!isOpen) return
+    if (mode === 'add') {
+      if (!memberID) {
+        console.log('AddMemberModal(add): opening, generating member ID')
+        generateMemberID().then(setMemberID)
+      }
+      // Reset form for add
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        profession: 'photographer',
+        businessName: '',
+        addressLine1: '',
+        addressLine2: '',
+        pincode: '',
+        city: '',
+        state: '',
+        area: '',
+        notes: '',
+        status: 'active',
+        dob: '',
+        bloodGroup: ''
+      })
+      setProfilePhoto(null)
+      setPhotoPreview('')
+      setErrors({})
+      setAvailableAreas([])
+    } else if (mode === 'edit' && initialMember) {
+      // Prefill form for edit
+      setMemberID(initialMember.member_id)
+      setFormData({
+        firstName: initialMember.first_name || '',
+        lastName: initialMember.last_name || '',
+        email: initialMember.email || '',
+        phone: initialMember.phone || '',
+        profession: initialMember.profession || 'photographer',
+        businessName: initialMember.business_name || '',
+        addressLine1: initialMember.address_line1 || '',
+        addressLine2: initialMember.address_line2 || '',
+        pincode: initialMember.pincode || '',
+        city: initialMember.city || '',
+        state: initialMember.state || '',
+        area: initialMember.area || '',
+        notes: initialMember.notes || '',
+        status: initialMember.status || 'active',
+        dob: toDateInputValue(initialMember.dob ?? null),
+        bloodGroup: initialMember.blood_group || ''
+      })
+      setProfilePhoto(null)
+      setPhotoPreview(initialMember.profile_photo_url || '')
+      setErrors({})
+      // Preload areas for current pincode
+      if (initialMember.pincode) {
+        validatePincode(initialMember.pincode).then(res => {
+          if (res.isValid) {
+            setAvailableAreas(res.areas || [])
+          } else {
+            setAvailableAreas([])
+          }
+        }).catch(() => setAvailableAreas([]))
+      } else {
+        setAvailableAreas([])
+      }
     }
-  }, [isOpen, memberID])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, mode, initialMember?.member_id])
 
   // Handle form field changes
   const handleInputChange = (field: string, value: string) => {
@@ -76,16 +158,26 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMember
           state: result.state!
         }))
         setErrors(prev => ({ ...prev, pincode: '' }))
+        const areas = result.areas || []
+        setAvailableAreas(areas)
+        setFormData(prev => ({
+          ...prev,
+          area: (prev.area && areas.includes(prev.area)) ? prev.area : (areas.length === 1 ? areas[0] : '')
+        }))
       } else {
         setErrors(prev => ({ ...prev, pincode: result.error || 'Invalid pincode' }))
+        setAvailableAreas([])
+        setFormData(prev => ({ ...prev, area: '' }))
       }
     } else if (pincode.length < 6) {
       // Reset autofilled fields to avoid stale values
       setFormData(prev => ({
         ...prev,
         city: '',
-        state: ''
+        state: '',
+        area: ''
       }))
+      setAvailableAreas([])
       if (pincode.length > 0) {
         setErrors(prev => ({ ...prev, pincode: 'Pincode must be exactly 6 digits' }))
       } else {
@@ -129,7 +221,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMember
     if (!formData.phone.trim()) newErrors.phone = 'Phone is required'
     if (!formData.addressLine1.trim()) newErrors.addressLine1 = 'Address is required'
     if (!formData.pincode.trim()) newErrors.pincode = 'Pincode is required'
-    if (!profilePhoto) newErrors.photo = 'Profile photo is required'
+    if (availableAreas.length > 0 && !formData.area) newErrors.area = 'Please select an area'
 
     // Email validation
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -141,18 +233,49 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMember
       newErrors.phone = 'Please enter a valid phone number'
     }
 
-    // Check duplicates
+    // DOB validation (optional, must be valid date and not in the future)
+    if (formData.dob) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(formData.dob)) {
+        newErrors.dob = 'Please enter DOB in YYYY-MM-DD format'
+      } else {
+        const d = new Date(formData.dob + 'T00:00:00')
+        if (isNaN(d.getTime())) {
+          newErrors.dob = 'Invalid date'
+        } else {
+          const today = new Date()
+          today.setHours(0,0,0,0)
+          if (d > today) newErrors.dob = 'DOB cannot be in the future'
+        }
+      }
+    }
+
+    // Blood group validation (optional)
+    if (formData.bloodGroup) {
+      const bg = formData.bloodGroup.toUpperCase()
+      if (!allowedBloodGroups.includes(bg)) {
+        newErrors.bloodGroup = 'Invalid blood group'
+      }
+    }
+
+    // Check duplicates (skip if unchanged in edit mode)
     if (formData.email && !newErrors.email) {
-      const emailExists = await checkEmailExists(formData.email)
-      if (emailExists) {
-        newErrors.email = 'This email is already registered'
+      const changed = mode === 'edit' && initialMember ? (formData.email.toLowerCase().trim() !== initialMember.email.toLowerCase()) : true
+      if (changed) {
+        const emailExists = await checkEmailExists(formData.email)
+        if (emailExists) {
+          newErrors.email = 'This email is already registered'
+        }
       }
     }
 
     if (formData.phone && !newErrors.phone) {
-      const phoneExists = await checkPhoneExists(formData.phone)
-      if (phoneExists) {
-        newErrors.phone = 'This phone number is already registered'
+      const normalized = formData.phone.replace(/[\s\-\(\)]/g, '')
+      const changed = mode === 'edit' && initialMember ? (normalized !== initialMember.phone) : true
+      if (changed) {
+        const phoneExists = await checkPhoneExists(formData.phone)
+        if (phoneExists) {
+          newErrors.phone = 'This phone number is already registered'
+        }
       }
     }
 
@@ -172,82 +295,156 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMember
         setIsLoading(false)
         return
       }
-
-      // Upload photo first
-      const photoResult = await uploadProfilePhoto(profilePhoto!, memberID)
-      if (!photoResult.success) {
-        setErrors({ photo: photoResult.error || 'Failed to upload photo' })
-        setIsLoading(false)
-        return
-      }
-
-      // Create member record
       const supabase = createClient()
-      const memberData = {
-        member_id: memberID,
-        first_name: formData.firstName.trim(),
-        last_name: formData.lastName.trim(),
-        email: formData.email.toLowerCase().trim(),
-        phone: formData.phone.replace(/[\s\-\(\)]/g, ''),
-        profession: formData.profession,
-        business_name: formData.businessName.trim() || null,
-        address_line1: formData.addressLine1.trim(),
-        address_line2: formData.addressLine2.trim() || null,
-        pincode: formData.pincode.trim(),
-        city: formData.city.trim(),
-        state: formData.state.trim(),
-        profile_photo_url: photoResult.url,
-        notes: formData.notes.trim() || null,
-        status: 'active'
-      }
 
-      const { data, error } = await supabase
-        .from('members')
-        .insert([memberData])
-        .select()
-        .single()
-
-      if (error) {
-        console.error('Error creating member:', error)
-        // Map unique constraint violations to field-level errors when possible
-        const newErrors: Record<string, string> = {}
-        const msg = (error as any)?.message || ''
-        const code = (error as any)?.code || ''
-        if (code === '23505' || /duplicate key value/i.test(msg)) {
-          if (/email/i.test(msg)) newErrors.email = 'This email is already registered'
-          if (/phone/i.test(msg)) newErrors.phone = 'This phone number is already registered'
-          if (Object.keys(newErrors).length === 0) newErrors.general = 'Duplicate value detected'
-        } else {
-          newErrors.general = 'Failed to create member. Please try again.'
+      if (mode === 'add') {
+        // Photo optional: upload only if provided
+        let photoUrl: string | null = null
+        if (profilePhoto) {
+          const photoResult = await uploadProfilePhoto(profilePhoto, memberID)
+          if (!photoResult.success) {
+            setErrors({ photo: photoResult.error || 'Failed to upload photo' })
+            setIsLoading(false)
+            return
+          }
+          photoUrl = photoResult.url || null
         }
-        setErrors(newErrors)
-        setIsLoading(false)
-        return
-      }
 
-      // Success
-      onSuccess(data)
-      onClose()
-      
-      // Reset form
-      setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        profession: 'photographer',
-        businessName: '',
-        addressLine1: '',
-        addressLine2: '',
-        pincode: '',
-        city: '',
-        state: '',
-        notes: ''
-      })
-      setProfilePhoto(null)
-      setPhotoPreview('')
-      setMemberID('')
-      setErrors({})
+        // Create member record
+        const memberData = {
+          member_id: memberID,
+          first_name: formData.firstName.trim(),
+          last_name: formData.lastName.trim(),
+          email: formData.email.toLowerCase().trim(),
+          phone: formData.phone.replace(/[\s\-\(\)]/g, ''),
+          profession: formData.profession,
+          business_name: formData.businessName.trim() || null,
+          address_line1: formData.addressLine1.trim(),
+          address_line2: formData.addressLine2.trim() || null,
+          pincode: formData.pincode.trim(),
+          city: formData.city.trim(),
+          area: formData.area.trim() || null,
+          state: formData.state.trim(),
+          profile_photo_url: photoUrl,
+          notes: formData.notes.trim() || null,
+          dob: formData.dob ? formData.dob : null,
+          blood_group: formData.bloodGroup ? formData.bloodGroup.toUpperCase() : null,
+          status: (formData.status === 'inactive' ? 'inactive' : 'active')
+        }
+
+        const { data, error } = await supabase
+          .from('members')
+          .insert([memberData])
+          .select()
+          .single()
+
+        if (error) {
+          console.error('Error creating member:', error)
+          // Map unique constraint violations to field-level errors when possible
+          const newErrors: Record<string, string> = {}
+          const msg = (error as any)?.message || ''
+          const code = (error as any)?.code || ''
+          if (code === '23505' || /duplicate key value/i.test(msg)) {
+            if (/email/i.test(msg)) newErrors.email = 'This email is already registered'
+            if (/phone/i.test(msg)) newErrors.phone = 'This phone number is already registered'
+            if (Object.keys(newErrors).length === 0) newErrors.general = 'Duplicate value detected'
+          } else {
+            newErrors.general = 'Failed to create member. Please try again.'
+          }
+          setErrors(newErrors)
+          setIsLoading(false)
+          return
+        }
+
+        // Success
+        onSuccess(data)
+        onClose()
+
+        // Reset form
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          profession: 'photographer',
+          businessName: '',
+          addressLine1: '',
+          addressLine2: '',
+          pincode: '',
+          city: '',
+          state: '',
+          area: '',
+          notes: '',
+          status: 'active',
+          dob: '',
+          bloodGroup: ''
+        })
+        setProfilePhoto(null)
+        setPhotoPreview('')
+        setMemberID('')
+        setErrors({})
+      } else if (mode === 'edit' && initialMember) {
+        // Upload photo only if changed; otherwise keep existing (null when absent)
+        let photoUrl: string | null = initialMember.profile_photo_url ?? null
+        if (profilePhoto) {
+          const photoResult = await uploadProfilePhoto(profilePhoto, initialMember.member_id)
+          if (!photoResult.success) {
+            setErrors({ photo: photoResult.error || 'Failed to upload photo' })
+            setIsLoading(false)
+            return
+          }
+          photoUrl = photoResult.url || photoUrl
+        }
+
+        const updateData = {
+          first_name: formData.firstName.trim(),
+          last_name: formData.lastName.trim(),
+          email: formData.email.toLowerCase().trim(),
+          phone: formData.phone.replace(/[\s\-\(\)]/g, ''),
+          profession: formData.profession,
+          business_name: formData.businessName.trim() || null,
+          address_line1: formData.addressLine1.trim(),
+          address_line2: formData.addressLine2?.trim() ? formData.addressLine2.trim() : null,
+          pincode: formData.pincode.trim(),
+          city: formData.city.trim(),
+          area: formData.area.trim() || null,
+          state: formData.state.trim(),
+          profile_photo_url: photoUrl,
+          notes: formData.notes.trim() || null,
+          status: (formData.status === 'inactive' ? 'inactive' : 'active'),
+          dob: formData.dob ? formData.dob : null,
+          blood_group: formData.bloodGroup ? formData.bloodGroup.toUpperCase() : null,
+          updated_at: new Date().toISOString()
+        }
+
+        const { data, error } = await supabase
+          .from('members')
+          .update(updateData)
+          .eq('member_id', initialMember.member_id)
+          .is('deleted_at', null)
+          .select()
+          .single()
+
+        if (error) {
+          console.error('Error updating member:', error)
+          const newErrors: Record<string, string> = {}
+          const msg = (error as any)?.message || ''
+          const code = (error as any)?.code || ''
+          if (code === '23505' || /duplicate key value/i.test(msg)) {
+            if (/email/i.test(msg)) newErrors.email = 'This email is already registered'
+            if (/phone/i.test(msg)) newErrors.phone = 'This phone number is already registered'
+            if (Object.keys(newErrors).length === 0) newErrors.general = 'Duplicate value detected'
+          } else {
+            newErrors.general = 'Failed to update member. Please try again.'
+          }
+          setErrors(newErrors)
+          setIsLoading(false)
+          return
+        }
+
+        onSuccess(data)
+        onClose()
+      }
     } catch (error) {
       console.error('Error:', error)
       setErrors({ general: 'Something went wrong. Please try again.' })
@@ -267,9 +464,9 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMember
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Add New Member</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{mode === 'edit' ? 'Edit Member' : 'Add New Member'}</h2>
               <p className="text-sm text-gray-600 mt-1">
-                Member ID: <span className="font-mono text-primary-600">{memberID}</span>
+                Member ID: <span className="font-mono text-primary-600">{mode === 'edit' && initialMember ? initialMember.member_id : memberID}</span>
               </p>
             </div>
             <button
@@ -293,7 +490,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMember
             {/* Profile Photo */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Profile Photo *
+                Profile Photo (optional)
               </label>
               <div className="flex items-center space-x-4">
                 <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
@@ -309,7 +506,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMember
                     onClick={() => fileInputRef.current?.click()}
                     className="btn-secondary"
                   >
-                    Choose Photo
+                    {mode === 'edit' ? 'Change Photo' : 'Choose Photo'}
                   </button>
                   <p className="text-xs text-gray-500 mt-1">JPG, PNG up to 2MB</p>
                 </div>
@@ -386,6 +583,39 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMember
               </div>
             </div>
 
+            {/* DOB & Blood Group */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  value={formData.dob}
+                  onChange={(e) => handleInputChange('dob', e.target.value)}
+                  className={`input-field ${errors.dob ? 'border-red-300' : ''}`}
+                />
+                {errors.dob && <p className="text-sm text-red-600 mt-1">{errors.dob}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Blood Group
+                </label>
+                <select
+                  value={formData.bloodGroup}
+                  onChange={(e) => handleInputChange('bloodGroup', e.target.value)}
+                  className={`input-field ${errors.bloodGroup ? 'border-red-300' : ''}`}
+                >
+                  <option value="">Select blood group (optional)</option>
+                  {allowedBloodGroups.map(bg => (
+                    <option key={bg} value={bg}>{bg}</option>
+                  ))}
+                </select>
+                {errors.bloodGroup && <p className="text-sm text-red-600 mt-1">{errors.bloodGroup}</p>}
+              </div>
+            </div>
+
             {/* Profession & Business Name */}
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -417,6 +647,23 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMember
               </div>
             </div>
 
+            {/* Status */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status *
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => handleInputChange('status', e.target.value)}
+                  className="input-field"
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+            </div>
+
             {/* Address Fields */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -445,8 +692,8 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMember
               />
             </div>
 
-            {/* Pincode, City, State */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Pincode, Area, City, State */}
+            <div className="grid grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Pincode *
@@ -460,6 +707,35 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMember
                   maxLength={6}
                 />
                 {errors.pincode && <p className="text-sm text-red-600 mt-1">{errors.pincode}</p>}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Area {availableAreas.length > 0 ? '*' : '(not available for this PIN)'}
+                </label>
+                {availableAreas.length > 0 ? (
+                  <>
+                    <select
+                      value={formData.area}
+                      onChange={(e) => handleInputChange('area', e.target.value)}
+                      className={`input-field ${errors.area ? 'border-red-300' : ''}`}
+                    >
+                      <option value="">Select area</option>
+                      {availableAreas.map((a) => (
+                        <option key={a} value={a}>{a}</option>
+                      ))}
+                    </select>
+                    {errors.area && <p className="text-sm text-red-600 mt-1">{errors.area}</p>}
+                  </>
+                ) : (
+                  <input
+                    type="text"
+                    value=""
+                    readOnly
+                    className="input-field bg-gray-50"
+                    placeholder="Not available for this PIN"
+                  />
+                )}
               </div>
               
               <div>
@@ -521,10 +797,10 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMember
                 {isLoading ? (
                   <div className="flex items-center">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    Creating Member...
+                    {mode === 'edit' ? 'Saving Changes...' : 'Creating Member...'}
                   </div>
                 ) : (
-                  'Create Member'
+                  (mode === 'edit' ? 'Save Changes' : 'Create Member')
                 )}
               </button>
             </div>

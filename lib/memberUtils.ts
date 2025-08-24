@@ -44,6 +44,7 @@ export async function validatePincode(pincode: string): Promise<{
   isValid: boolean
   city?: string
   state?: string
+  areas?: string[]
   error?: string
 }> {
   // Basic validation - 6 digits
@@ -76,11 +77,17 @@ export async function validatePincode(pincode: string): Promise<{
     }
 
     if (result.Status === 'Success' && result.PostOffice && result.PostOffice.length > 0) {
-      const postOffice = result.PostOffice[0]
+      const postOffices = result.PostOffice
+      const first = postOffices[0]
+      const names: string[] = postOffices
+        .map((po: any) => (typeof po?.Name === 'string' ? po.Name.trim() : ''))
+        .filter((n: string) => n.length > 0)
+      const areas: string[] = Array.from(new Set<string>(names))
       return {
         isValid: true,
-        city: postOffice.District,
-        state: postOffice.State
+        city: first.District,
+        state: first.State,
+        areas
       }
     }
 
@@ -224,10 +231,15 @@ export interface Member {
   address_line2?: string
   pincode: string
   city: string
+  area?: string
   state: string
+  // New optional fields
+  dob?: string | null
+  blood_group?: string | null
   status: 'active' | 'inactive' | 'suspended'
   profile_photo_url?: string
   notes?: string
   created_at?: string
   updated_at?: string
+  deleted_at?: string
 }

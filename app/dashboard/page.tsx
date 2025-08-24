@@ -8,6 +8,7 @@ import Sidebar from '../../components/Sidebar'
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [totalMembers, setTotalMembers] = useState<number | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -26,6 +27,24 @@ export default function Dashboard() {
 
     getUser()
   }, [])
+
+  // Load total members (excluding soft-deleted)
+  useEffect(() => {
+    if (!user) return
+    const supabase = createClient()
+    const load = async () => {
+      const { count, error } = await supabase
+        .from('members')
+        .select('id', { count: 'exact', head: true })
+        .is('deleted_at', null)
+      if (error) {
+        console.error('Failed to load total members', error)
+        return
+      }
+      setTotalMembers(count ?? 0)
+    }
+    void load()
+  }, [user])
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -82,7 +101,7 @@ export default function Dashboard() {
             <div className="flex items-center">
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-blue-900 mb-1">Total Members</h3>
-                <p className="text-3xl font-bold text-blue-600">1,300+</p>
+                <p className="text-3xl font-bold text-blue-600">{totalMembers === null ? '—' : totalMembers.toLocaleString()}</p>
                 <p className="text-sm text-blue-700 mt-1">Active photographers & videographers</p>
               </div>
             </div>

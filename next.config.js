@@ -1,10 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', 'graoxxowiekyqyibrkuv.supabase.co'],
+  },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      const externals = Array.isArray(config.externals) ? config.externals : []
+      config.externals = [
+        ...externals,
+        '@react-pdf/renderer',
+        '@react-pdf/layout',
+        '@react-pdf/textkit',
+        'bidi-js',
+      ]
+    }
+    return config
   },
 }
 
