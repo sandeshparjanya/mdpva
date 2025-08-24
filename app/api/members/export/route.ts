@@ -407,7 +407,9 @@ export async function GET(req: NextRequest) {
         )
       )
 
-      const stream = await pdf(PdfDoc).toBuffer()
+      // Render to a Buffer (Node) and return as BodyInit. Type cast avoids TS mismatch between
+      // @react-pdf/renderer type defs and Node Response BodyInit on Vercel.
+      const pdfBuffer = await (pdf(PdfDoc) as any).toBuffer()
 
       const pad = (n: number) => n.toString().padStart(2, '0')
       const now = new Date()
@@ -418,7 +420,7 @@ export async function GET(req: NextRequest) {
       const mm2 = pad(now.getMinutes())
       const filename = `mdpva-members-${scope}-${y}${m2}${d2}-${hh2}${mm2}.pdf`
 
-      return new NextResponse(stream, {
+      return new NextResponse(pdfBuffer as any, {
         headers: {
           'Content-Type': 'application/pdf',
           'Content-Disposition': `attachment; filename="${filename}"`,
