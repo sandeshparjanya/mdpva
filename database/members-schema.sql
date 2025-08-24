@@ -68,19 +68,22 @@ BEGIN
 END $$;
 
 -- Function to update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
 BEGIN
-    NEW.updated_at = NOW();
+    NEW.updated_at = now();
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$;
 
 -- Trigger to automatically update updated_at
 CREATE TRIGGER update_members_updated_at 
     BEFORE UPDATE ON members 
     FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
+    EXECUTE FUNCTION public.update_updated_at_column();
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE members ENABLE ROW LEVEL SECURITY;

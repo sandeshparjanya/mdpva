@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Sidebar from '../../../components/Sidebar'
 import AddMemberModal from '../../../components/AddMemberModal'
+import ProfileMenu from '../../../components/ProfileMenu'
 import { 
   PlusIcon,
   UsersIcon,
@@ -498,6 +499,8 @@ export default function MembersPage() {
               <PlusIcon className="w-4 h-4 mr-2" />
               Add Member
             </button>
+            {/* Page-level profile menu (desktop only) */}
+            <ProfileMenu className="hidden lg:inline-block" />
           </div>
         </div>
 

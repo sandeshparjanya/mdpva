@@ -59,6 +59,21 @@ type ColumnsMode = 'default' | 'all'
 export async function GET(req: NextRequest) {
   const url = new URL(req.url)
   const supabase = createServerClientSupabase()
+  // Require authenticated admin session
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) {
+    return new NextResponse('Unauthorized', { status: 401 })
+  }
+  const allow = (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map(s => s.trim().toLowerCase())
+    .filter(Boolean)
+  if (allow.length > 0) {
+    const email = session.user.email?.toLowerCase()
+    if (!email || !allow.includes(email)) {
+      return new NextResponse('Forbidden', { status: 403 })
+    }
+  }
 
   // Rate limit per IP
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.ip || 'unknown'

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Menu } from '@headlessui/react'
 import {
   ChartBarIcon,
   UsersIcon,
@@ -15,9 +16,12 @@ import {
   InformationCircleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronDownIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline'
+import { createClient } from '../lib/supabase'
 
 interface SidebarProps {
   children: React.ReactNode
@@ -27,6 +31,76 @@ export default function Sidebar({ children }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const pathname = usePathname()
+  const [adminOpen, setAdminOpen] = useState(true)
+  const [commOpen, setCommOpen] = useState(true)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+
+  // Persist collapsed state across sessions
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const saved = localStorage.getItem('mdpva:sidebarCollapsed')
+    if (saved === 'true') {
+      setIsCollapsed(true)
+    }
+    const adminSaved = localStorage.getItem('mdpva:sidebar:section:admin')
+    if (adminSaved === 'false') setAdminOpen(false)
+    const commSaved = localStorage.getItem('mdpva:sidebar:section:comm')
+    if (commSaved === 'false') setCommOpen(false)
+  }, [])
+
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    window.location.href = '/'
+  }
+
+  const toggleCollapsed = () => {
+    setIsCollapsed(prev => {
+      const next = !prev
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('mdpva:sidebarCollapsed', String(next))
+      }
+      return next
+    })
+  }
+
+  const toggleAdminOpen = () => {
+    setAdminOpen(prev => {
+      const next = !prev
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('mdpva:sidebar:section:admin', String(next))
+      }
+      return next
+    })
+  }
+
+  const toggleCommOpen = () => {
+    setCommOpen(prev => {
+      const next = !prev
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('mdpva:sidebar:section:comm', String(next))
+      }
+      return next
+    })
+  }
+
+  // Mobile drawer a11y: ESC to close and focus management
+  useEffect(() => {
+    if (!isMobileOpen) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMobileOpen(false)
+        setTimeout(() => menuButtonRef.current?.focus(), 0)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    const t = setTimeout(() => closeButtonRef.current?.focus(), 0)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      clearTimeout(t)
+    }
+  }, [isMobileOpen])
 
   const administrationItems = [
     { name: 'Dashboard', href: '/dashboard', icon: ChartBarIcon },
@@ -46,16 +120,16 @@ export default function Sidebar({ children }: SidebarProps) {
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Logo/Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
         {!isCollapsed && (
           <div>
-            <h1 className="text-lg font-bold text-gray-900">MDPVA Admin</h1>
-            <p className="text-xs text-gray-500">Member Management</p>
+            <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">MDPVA Admin</h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Member Management</p>
           </div>
         )}
         <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-1 rounded-lg hover:bg-gray-100 transition-colors hidden lg:block"
+          onClick={toggleCollapsed}
+          className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors hidden lg:block"
         >
           {isCollapsed ? (
             <ChevronRightIcon className="w-5 h-5" />
@@ -66,29 +140,37 @@ export default function Sidebar({ children }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-6">
+      <nav className="flex-1 p-4 space-y-6" aria-label="Sidebar">
         {/* Administration Section */}
         <div>
           {!isCollapsed && (
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              Administration
-            </h3>
+            <button onClick={toggleAdminOpen} className="w-full flex items-center justify-between text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+              <span>Administration</span>
+              <ChevronDownIcon className={`w-4 h-4 transition-transform ${adminOpen ? '' : '-rotate-90'}`} />
+            </button>
           )}
-          <ul className="space-y-1">
+          <ul className={`space-y-1 ${adminOpen ? '' : 'hidden'}`}>
             {administrationItems.map((item) => {
               const isActive = pathname === item.href
               return (
-                <li key={item.name}>
+                <li key={item.name} className="relative">
                   <Link
                     href={item.href}
-                    className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    title={isCollapsed ? item.name : undefined}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`group relative flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors border-l-2 ${
                       isActive
-                        ? 'bg-primary-100 text-primary-700'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? 'bg-primary-50 text-primary-700 border-primary-600 dark:bg-primary-900/30 dark:text-primary-200'
+                        : 'text-gray-700 hover:bg-gray-100 border-transparent dark:text-gray-200 dark:hover:bg-gray-700'
                     }`}
                   >
                     <item.icon className="w-5 h-5 flex-shrink-0" />
                     {!isCollapsed && <span className="ml-3">{item.name}</span>}
+                    {isCollapsed && (
+                      <span className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 whitespace-nowrap rounded-md bg-gray-900 text-white text-xs py-1 px-2 shadow-lg opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 z-40 dark:bg-gray-700">
+                        {item.name}
+                      </span>
+                    )}
                   </Link>
                 </li>
               )
@@ -99,25 +181,33 @@ export default function Sidebar({ children }: SidebarProps) {
         {/* Communication Section */}
         <div>
           {!isCollapsed && (
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              Communication
-            </h3>
+            <button onClick={toggleCommOpen} className="w-full flex items-center justify-between text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+              <span>Communication</span>
+              <ChevronDownIcon className={`w-4 h-4 transition-transform ${commOpen ? '' : '-rotate-90'}`} />
+            </button>
           )}
-          <ul className="space-y-1">
+          <ul className={`space-y-1 ${commOpen ? '' : 'hidden'}`}>
             {communicationItems.map((item) => {
               const isActive = pathname === item.href
               return (
-                <li key={item.name}>
+                <li key={item.name} className="relative">
                   <Link
                     href={item.href}
-                    className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    title={isCollapsed ? item.name : undefined}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`group relative flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors border-l-2 ${
                       isActive
-                        ? 'bg-primary-100 text-primary-700'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? 'bg-primary-50 text-primary-700 border-primary-600 dark:bg-primary-900/30 dark:text-primary-200'
+                        : 'text-gray-700 hover:bg-gray-100 border-transparent dark:text-gray-200 dark:hover:bg-gray-700'
                     }`}
                   >
                     <item.icon className="w-5 h-5 flex-shrink-0" />
                     {!isCollapsed && <span className="ml-3">{item.name}</span>}
+                    {isCollapsed && (
+                      <span className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 whitespace-nowrap rounded-md bg-gray-900 text-white text-xs py-1 px-2 shadow-lg opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 z-40 dark:bg-gray-700">
+                        {item.name}
+                      </span>
+                    )}
                   </Link>
                 </li>
               )
@@ -129,20 +219,21 @@ export default function Sidebar({ children }: SidebarProps) {
   )
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       {/* Mobile sidebar overlay */}
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileOpen(false)} />
-          <div className="fixed left-0 top-0 bottom-0 w-64 bg-white shadow-xl">
+          <div className="fixed inset-0 bg-black/50" onClick={() => { setIsMobileOpen(false); setTimeout(() => menuButtonRef.current?.focus(), 0) }} />
+          <div className="fixed left-0 top-0 bottom-0 w-64 bg-white dark:bg-gray-800 shadow-xl">
             <div className="flex items-center justify-between p-4 border-b">
               <div>
-                <h1 className="text-lg font-bold text-gray-900">MDPVA Admin</h1>
-                <p className="text-xs text-gray-500">Member Management</p>
+                <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">MDPVA Admin</h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Member Management</p>
               </div>
               <button
-                onClick={() => setIsMobileOpen(false)}
-                className="p-1 rounded-lg hover:bg-gray-100"
+                ref={closeButtonRef}
+                onClick={() => { setIsMobileOpen(false); setTimeout(() => menuButtonRef.current?.focus(), 0) }}
+                className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 <XMarkIcon className="w-5 h-5" />
               </button>
@@ -155,7 +246,7 @@ export default function Sidebar({ children }: SidebarProps) {
       )}
 
       {/* Desktop sidebar */}
-      <div className={`hidden lg:flex flex-col bg-white border-r border-gray-200 transition-all duration-300 ${
+      <div className={`hidden lg:flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ${
         isCollapsed ? 'w-16' : 'w-64'
       }`}>
         <SidebarContent />
@@ -164,18 +255,60 @@ export default function Sidebar({ children }: SidebarProps) {
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar for mobile */}
-        <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
+        <div className="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
           <div className="flex items-center justify-between">
             <button
+              ref={menuButtonRef}
               onClick={() => setIsMobileOpen(true)}
-              className="p-2 rounded-lg hover:bg-gray-100"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               <Bars3Icon className="w-6 h-6" />
             </button>
             <div>
-              <h1 className="text-lg font-bold text-gray-900">MDPVA Admin</h1>
+              <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">MDPVA Admin</h1>
             </div>
-            <div className="w-10" /> {/* Spacer for centering */}
+            <div>
+              <Menu as="div" className="relative inline-block text-left">
+                <Menu.Button className="p-2 rounded-lg hover:bg-gray-100" aria-label="Account menu">
+                  <UserIcon className="w-6 h-6 text-gray-700" />
+                </Menu.Button>
+                <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right bg-white border border-gray-200 rounded-lg shadow-lg focus:outline-none z-50">
+                  <div className="py-1">
+                    <Menu.Item>
+                      {({ active }) => (
+                        <Link
+                          href="/dashboard/profile"
+                          className={`flex items-center gap-2 px-4 py-2 text-sm ${active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'}`}
+                        >
+                          <UserIcon className="w-4 h-4" /> Profile
+                        </Link>
+                      )}
+                    </Menu.Item>
+                    <Menu.Item>
+                      {({ active }) => (
+                        <Link
+                          href="/dashboard/settings"
+                          className={`flex items-center gap-2 px-4 py-2 text-sm ${active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'}`}
+                        >
+                          <CogIcon className="w-4 h-4" /> Settings
+                        </Link>
+                      )}
+                    </Menu.Item>
+                    <div className="my-1 border-t" />
+                    <Menu.Item>
+                      {({ active }) => (
+                        <button
+                          onClick={handleLogout}
+                          className={`w-full text-left flex items-center gap-2 px-4 py-2 text-sm ${active ? 'bg-gray-100 text-red-700' : 'text-red-600'}`}
+                        >
+                          <ArrowRightOnRectangleIcon className="w-4 h-4" /> Logout
+                        </button>
+                      )}
+                    </Menu.Item>
+                  </div>
+                </Menu.Items>
+              </Menu>
+            </div>
           </div>
         </div>
 
