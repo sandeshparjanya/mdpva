@@ -13,7 +13,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="min-h-screen flex flex-col">
+        <main className="flex-1">
+          {children}
+        </main>
+        <footer className="py-4 text-center text-gray-500 text-sm">
+          <div>© MDPVA</div>
+          <div>Developed by - Mindsfire Pvt Ltd.</div>
+        </footer>
+      </body>
     </html>
   )
 }
