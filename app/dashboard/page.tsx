@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '../../lib/supabase'
 import { User } from '@supabase/supabase-js'
 import Sidebar from '../../components/Sidebar'
+import ProfileMenu from '../../components/ProfileMenu'
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null)
@@ -46,12 +47,6 @@ export default function Dashboard() {
     void load()
   }, [user])
 
-  const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    window.location.href = '/'
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -73,12 +68,7 @@ export default function Dashboard() {
             <span className="text-sm text-gray-700">
               Welcome, {user?.email}
             </span>
-            <button
-              onClick={handleLogout}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-            >
-              Logout
-            </button>
+            <ProfileMenu className="hidden lg:inline-block" />
           </div>
         </div>
       </div>
