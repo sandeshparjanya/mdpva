@@ -85,6 +85,16 @@ CREATE TRIGGER update_members_updated_at
     FOR EACH ROW 
     EXECUTE FUNCTION public.update_updated_at_column();
 
+-- Expose Postgres version via RPC (sanitized, stable, search_path pinned)
+CREATE OR REPLACE FUNCTION public.get_pg_version()
+RETURNS text
+LANGUAGE sql
+STABLE
+SET search_path = public
+AS $$
+  SELECT 'PostgreSQL ' || current_setting('server_version');
+$$;
+
 -- Enable Row Level Security (RLS)
 ALTER TABLE members ENABLE ROW LEVEL SECURITY;
 
