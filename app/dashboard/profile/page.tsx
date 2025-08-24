@@ -1,6 +1,7 @@
 'use client'
 
 import Sidebar from '../../../components/Sidebar'
+import ProfileMenu from '../../../components/ProfileMenu'
 
 export default function ProfilePage() {
   return (
@@ -15,6 +16,9 @@ export default function ProfilePage() {
             </nav>
             <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
             <p className="text-sm text-gray-600 mt-1">Coming soon</p>
+          </div>
+          <div className="flex items-center">
+            <ProfileMenu className="hidden lg:inline-block" />
           </div>
         </div>
       </div>
