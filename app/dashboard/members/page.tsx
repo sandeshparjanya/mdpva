@@ -927,6 +927,24 @@ export default function MembersPage() {
                   <div className="text-sm text-gray-900 capitalize">{selectedMember.profession}</div>
                 </div>
 
+                {/* Personal */}
+                {(selectedMember.dob || selectedMember.blood_group) && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {selectedMember.dob && (
+                      <div>
+                        <div className="text-xs text-gray-500">Date of Birth</div>
+                        <div className="text-sm text-gray-900">{new Date(selectedMember.dob as string).toLocaleDateString()}</div>
+                      </div>
+                    )}
+                    {selectedMember.blood_group && (
+                      <div>
+                        <div className="text-xs text-gray-500">Blood Group</div>
+                        <div className="text-sm text-gray-900 uppercase">{selectedMember.blood_group}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Business */}
                 {selectedMember.business_name && (
                   <div>
