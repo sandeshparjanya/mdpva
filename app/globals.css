@@ -31,3 +31,18 @@
     @apply bg-white rounded-xl shadow-lg border border-gray-200 p-8;
   }
 }
+
+/* Safe-area support for iOS notches */
+:root {
+  /* Safe area bottom/top vars (fallback 0) */
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sat: env(safe-area-inset-top, 0px);
+}
+
+.footer-safe {
+  padding-bottom: max(1rem, var(--sab));
+}
+
+.header-safe {
+  padding-top: max(0.75rem, var(--sat));
+}

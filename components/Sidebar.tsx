@@ -117,27 +117,29 @@ export default function Sidebar({ children }: SidebarProps) {
     { name: 'About', href: '/dashboard/about', icon: InformationCircleIcon },
   ]
 
-  const SidebarContent = () => (
+  const SidebarContent = ({ showHeader = true }: { showHeader?: boolean }) => (
     <div className="flex flex-col h-full">
       {/* Logo/Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        {!isCollapsed && (
-          <div>
-            <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">MDPVA Admin</h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Member Management</p>
-          </div>
-        )}
-        <button
-          onClick={toggleCollapsed}
-          className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors hidden lg:block"
-        >
-          {isCollapsed ? (
-            <ChevronRightIcon className="w-5 h-5" />
-          ) : (
-            <ChevronLeftIcon className="w-5 h-5" />
+      {showHeader && (
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          {!isCollapsed && (
+            <div>
+              <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">MDPVA Admin</h1>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Member Management</p>
+            </div>
           )}
-        </button>
-      </div>
+          <button
+            onClick={toggleCollapsed}
+            className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors hidden lg:block"
+          >
+            {isCollapsed ? (
+              <ChevronRightIcon className="w-5 h-5" />
+            ) : (
+              <ChevronLeftIcon className="w-5 h-5" />
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-6" aria-label="Sidebar">
@@ -239,7 +241,7 @@ export default function Sidebar({ children }: SidebarProps) {
               </button>
             </div>
             <div className="overflow-y-auto">
-              <SidebarContent />
+              <SidebarContent showHeader={false} />
             </div>
           </div>
         </div>

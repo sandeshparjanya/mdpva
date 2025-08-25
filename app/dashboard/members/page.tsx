@@ -118,7 +118,7 @@ export default function MembersPage() {
   // Hover actions overlay rendered within the hovered cell (no sticky actions column)
   function RowActions({ member }: { member: Member }) {
     return (
-      <div className="absolute top-1/2 -translate-y-1/2 right-3 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+      <div className="flex items-center space-x-2 md:absolute md:top-1/2 md:-translate-y-1/2 md:right-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity pointer-events-auto md:pointer-events-none z-20">
         <button
           className="text-blue-600 hover:text-blue-800 inline-flex items-center text-sm bg-white/90 rounded px-2 py-1 pointer-events-auto"
           onClick={(e) => { e.stopPropagation(); openEdit(member) }}
@@ -685,145 +685,279 @@ export default function MembersPage() {
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profession</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {members.map((m) => (
-                    <tr
-                      key={m.id || m.member_id}
-                      className="relative group hover:bg-gray-50 cursor-pointer"
-                      onClick={() => openPeek(m)}
-                      tabIndex={0}
-                      onKeyDown={(e) => { if (e.key === 'Enter') openPeek(m) }}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-md bg-gray-100 overflow-hidden mr-3 flex items-center justify-center">
-                            {m.profile_photo_url ? (
-                              <Image
-                                src={m.profile_photo_url}
-                                alt={`${m.first_name} ${m.last_name}`}
-                                width={40}
-                                height={40}
-                                className="h-10 w-10 object-cover"
-                              />
-                            ) : (
-                              <div className="text-sm text-gray-500">{m.first_name.charAt(0)}{m.last_name.charAt(0)}</div>
-                            )}
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{m.first_name} {m.last_name}</div>
-                            <div className="text-xs text-gray-500 font-mono flex items-center gap-1">
-                              <span>{m.member_id}</span>
-                              <button
-                                type="button"
-                                className={`transition-opacity hover:text-gray-700 ${copiedId === m.member_id ? 'opacity-100 text-green-600' : 'opacity-0 group-hover:opacity-100'}`}
-                                title={copiedId === m.member_id ? 'Copied!' : 'Copy member ID'}
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  const id = m.member_id
-                                  const doCopy = async () => {
-                                    try {
-                                      await navigator.clipboard?.writeText(id)
-                                    } catch (_) {
-                                      // Fallback copy method
-                                      const ta = document.createElement('textarea')
-                                      ta.value = id
-                                      document.body.appendChild(ta)
-                                      ta.select()
-                                      try { document.execCommand('copy') } finally { document.body.removeChild(ta) }
-                                    }
-                                    setCopiedId(id)
-                                    if (copyTimeoutRef.current) window.clearTimeout(copyTimeoutRef.current)
-                                    copyTimeoutRef.current = window.setTimeout(() => setCopiedId(null), 1500)
-                                  }
-                                  void doCopy()
-                                }}
-                              >
-                                {copiedId === m.member_id ? (
-                                  <CheckCircleIcon className="w-4 h-4" aria-hidden="true" />
-                                ) : (
-                                  <DocumentDuplicateIcon className="w-4 h-4" aria-hidden="true" />
-                                )}
-                                <span className="sr-only">{copiedId === m.member_id ? 'Copied' : 'Copy member ID'}</span>
-                              </button>
+          <>
+            {/* Mobile Card List */}
+            <div className="block md:hidden">
+              <div className="space-y-3">
+                {members.map((m) => (
+                  <div
+                    key={m.id || m.member_id}
+                    className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm active:bg-gray-50"
+                    onClick={() => openPeek(m)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter') openPeek(m) }}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-md bg-gray-100 overflow-hidden flex items-center justify-center">
+                          {m.profile_photo_url ? (
+                            <Image
+                              src={m.profile_photo_url}
+                              alt={`${m.first_name} ${m.last_name}`}
+                              width={48}
+                              height={48}
+                              className="h-12 w-12 object-cover"
+                            />
+                          ) : (
+                            <div className="text-sm text-gray-500">
+                              {m.first_name.charAt(0)}{m.last_name.charAt(0)}
                             </div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="text-base font-semibold text-gray-900">{m.first_name} {m.last_name}</div>
+                          <div className="text-xs text-gray-500 font-mono flex items-center gap-1">
+                            <span>{m.member_id}</span>
+                            <button
+                              type="button"
+                              className={`transition-opacity hover:text-gray-700 ${copiedId === m.member_id ? 'opacity-100 text-green-600' : 'opacity-100'}`}
+                              title={copiedId === m.member_id ? 'Copied!' : 'Copy member ID'}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                const id = m.member_id
+                                const doCopy = async () => {
+                                  try {
+                                    await navigator.clipboard?.writeText(id)
+                                  } catch (_) {
+                                    // Fallback copy method
+                                    const ta = document.createElement('textarea')
+                                    ta.value = id
+                                    document.body.appendChild(ta)
+                                    ta.select()
+                                    try { document.execCommand('copy') } finally { document.body.removeChild(ta) }
+                                  }
+                                  setCopiedId(id)
+                                  if (copyTimeoutRef.current) window.clearTimeout(copyTimeoutRef.current)
+                                  copyTimeoutRef.current = window.setTimeout(() => setCopiedId(null), 1500)
+                                }
+                                void doCopy()
+                              }}
+                            >
+                              {copiedId === m.member_id ? (
+                                <CheckCircleIcon className="w-4 h-4" aria-hidden="true" />
+                              ) : (
+                                <DocumentDuplicateIcon className="w-4 h-4" aria-hidden="true" />
+                              )}
+                              <span className="sr-only">{copiedId === m.member_id ? 'Copied' : 'Copy member ID'}</span>
+                            </button>
                           </div>
+                        </div>
+                      </div>
+                      <div className="shrink-0">
+                        <RowActions member={m} />
+                      </div>
+                    </div>
 
-                          <RowActions member={m} />
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="relative">
-                          <div className="text-sm text-gray-900 capitalize">{m.profession}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="relative">
-                          <div className="text-sm text-gray-900">{m.email}</div>
-                          <div className="text-sm text-gray-500">{m.phone}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="relative">
-                          <div className="text-sm text-gray-900">{m.area || m.city}</div>
-                          <div className="text-sm text-gray-500">{m.area ? `${m.city}, ${m.state}` : m.state}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="relative">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            m.status === 'active' ? 'bg-green-100 text-green-800' :
-                            m.status === 'inactive' ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {m.status}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="relative">
-                          {m.created_at ? new Date(m.created_at).toLocaleDateString() : '-'}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <div className="text-xs text-gray-500">Profession</div>
+                        <div className="text-gray-900 capitalize">{m.profession}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500">Status</div>
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          m.status === 'active' ? 'bg-green-100 text-green-800' :
+                          m.status === 'inactive' ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {m.status}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500">Email</div>
+                        <div className="text-gray-900 break-all">{m.email}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500">Phone</div>
+                        <div className="text-gray-900">{m.phone}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500">Location</div>
+                        <div className="text-gray-900">{m.area || m.city}{m.area ? `, ${m.city}, ${m.state}` : `, ${m.state}`}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500">Created</div>
+                        <div className="text-gray-900">{m.created_at ? new Date(m.created_at).toLocaleDateString() : '-'}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-            {/* Pagination */}
-            <div className="px-6 py-3 flex items-center justify-between border-t bg-gray-50">
-              <div className="text-sm text-gray-600">Total: {total.toLocaleString()}</div>
-              <div className="flex items-center space-x-3">
-                <button
-                  className="btn-secondary"
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  Previous
-                </button>
-                <div className="text-sm text-gray-700">Page {page} of {Math.max(1, Math.ceil(total / pageSize))}</div>
-                <button
-                  className="btn-secondary"
-                  onClick={() => setPage(p => (p < Math.ceil(total / pageSize) ? p + 1 : p))}
-                  disabled={page >= Math.ceil(total / pageSize)}
-                >
-                  Next
-                </button>
+              {/* Pagination (Mobile) */}
+              <div className="px-2 py-3 mt-2 flex items-center justify-between">
+                <div className="text-sm text-gray-600">Total: {total.toLocaleString()}</div>
+                <div className="flex items-center space-x-3">
+                  <button
+                    className="btn-secondary"
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                  >
+                    Previous
+                  </button>
+                  <div className="text-sm text-gray-700">Page {page} of {Math.max(1, Math.ceil(total / pageSize))}</div>
+                  <button
+                    className="btn-secondary"
+                    onClick={() => setPage(p => (p < Math.ceil(total / pageSize) ? p + 1 : p))}
+                    disabled={page >= Math.ceil(total / pageSize)}
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+
+            {/* Desktop Table */}
+            <div className="hidden md:block">
+              <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profession</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {members.map((m) => (
+                      <tr
+                        key={m.id || m.member_id}
+                        className="relative group hover:bg-gray-50 cursor-pointer"
+                        onClick={() => openPeek(m)}
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter') openPeek(m) }}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="h-10 w-10 rounded-md bg-gray-100 overflow-hidden mr-3 flex items-center justify-center">
+                              {m.profile_photo_url ? (
+                                <Image
+                                  src={m.profile_photo_url}
+                                  alt={`${m.first_name} ${m.last_name}`}
+                                  width={40}
+                                  height={40}
+                                  className="h-10 w-10 object-cover"
+                                />
+                              ) : (
+                                <div className="text-sm text-gray-500">{m.first_name.charAt(0)}{m.last_name.charAt(0)}</div>
+                              )}
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{m.first_name} {m.last_name}</div>
+                              <div className="text-xs text-gray-500 font-mono flex items-center gap-1">
+                                <span>{m.member_id}</span>
+                                <button
+                                  type="button"
+                                  className={`transition-opacity hover:text-gray-700 ${copiedId === m.member_id ? 'opacity-100 text-green-600' : 'opacity-0 group-hover:opacity-100'}`}
+                                  title={copiedId === m.member_id ? 'Copied!' : 'Copy member ID'}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    const id = m.member_id
+                                    const doCopy = async () => {
+                                      try {
+                                        await navigator.clipboard?.writeText(id)
+                                      } catch (_) {
+                                        // Fallback copy method
+                                        const ta = document.createElement('textarea')
+                                        ta.value = id
+                                        document.body.appendChild(ta)
+                                        ta.select()
+                                        try { document.execCommand('copy') } finally { document.body.removeChild(ta) }
+                                      }
+                                      setCopiedId(id)
+                                      if (copyTimeoutRef.current) window.clearTimeout(copyTimeoutRef.current)
+                                      copyTimeoutRef.current = window.setTimeout(() => setCopiedId(null), 1500)
+                                    }
+                                    void doCopy()
+                                  }}
+                                >
+                                  {copiedId === m.member_id ? (
+                                    <CheckCircleIcon className="w-4 h-4" aria-hidden="true" />
+                                  ) : (
+                                    <DocumentDuplicateIcon className="w-4 h-4" aria-hidden="true" />
+                                  )}
+                                  <span className="sr-only">{copiedId === m.member_id ? 'Copied' : 'Copy member ID'}</span>
+                                </button>
+                              </div>
+                            </div>
+
+                            <RowActions member={m} />
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="relative">
+                            <div className="text-sm text-gray-900 capitalize">{m.profession}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="relative">
+                            <div className="text-sm text-gray-900">{m.email}</div>
+                            <div className="text-sm text-gray-500">{m.phone}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="relative">
+                            <div className="text-sm text-gray-900">{m.area || m.city}</div>
+                            <div className="text-sm text-gray-500">{m.area ? `${m.city}, ${m.state}` : m.state}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="relative">
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              m.status === 'active' ? 'bg-green-100 text-green-800' :
+                              m.status === 'inactive' ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {m.status}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <div className="relative">
+                            {m.created_at ? new Date(m.created_at).toLocaleDateString() : '-'}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination (Desktop) */}
+              <div className="px-6 py-3 flex items-center justify-between border-t bg-gray-50">
+                <div className="text-sm text-gray-600">Total: {total.toLocaleString()}</div>
+                <div className="flex items-center space-x-3">
+                  <button
+                    className="btn-secondary"
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                  >
+                    Previous
+                  </button>
+                  <div className="text-sm text-gray-700">Page {page} of {Math.max(1, Math.ceil(total / pageSize))}</div>
+                  <button
+                    className="btn-secondary"
+                    onClick={() => setPage(p => (p < Math.ceil(total / pageSize) ? p + 1 : p))}
+                    disabled={page >= Math.ceil(total / pageSize)}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
         )}
 
         {/* Add Member Modal */}
