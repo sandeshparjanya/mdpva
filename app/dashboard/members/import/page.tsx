@@ -219,8 +219,8 @@ export default function MembersImportPage() {
   return (
     <Sidebar>
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex justify-between items-start">
+      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             {/* Breadcrumb */}
             <nav className="flex text-sm text-gray-500 mb-2" aria-label="Breadcrumb">
@@ -233,11 +233,11 @@ export default function MembersImportPage() {
             <h1 className="text-2xl font-bold text-gray-900">Import Members</h1>
             <p className="text-sm text-gray-600 mt-1">Upload a CSV, map columns, dry-run validation, and import members in bulk.</p>
           </div>
-          <div className="flex items-center space-x-2">
-            <Link href="/samples/members-import-sample.csv" className="btn-secondary" prefetch={false}>
+          <div className="w-full sm:w-auto flex flex-wrap items-center gap-2">
+            <Link href="/samples/members-import-sample.csv" className="btn-secondary w-full sm:w-auto" prefetch={false}>
               Download CSV Template
             </Link>
-            <Link href="/dashboard/members" className="btn-secondary">Back to Members</Link>
+            <Link href="/dashboard/members" className="btn-secondary w-full sm:w-auto">Back to Members</Link>
           </div>
         </div>
       </div>

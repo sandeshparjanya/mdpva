@@ -63,6 +63,10 @@ export default function MembersPage() {
   const exportBannerRef = useRef<number | null>(null)
   const [hoveredExportType, setHoveredExportType] = useState<'csv' | 'pdf' | null>(null)
 
+  // Responsive + mobile-friendly export menu state
+  const [isSmallScreen, setIsSmallScreen] = useState(false)
+  const [expandedExportType, setExpandedExportType] = useState<'csv' | 'pdf' | null>(null)
+
   // Cleanup copy timeout on unmount
   useEffect(() => {
     return () => {
@@ -91,6 +95,26 @@ export default function MembersPage() {
   useEffect(() => {
     try { localStorage.setItem('membersSortBy', sortBy) } catch {}
   }, [sortBy])
+
+  // Track small screens (<= sm) to render mobile-friendly export menu
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)')
+    const update = () => setIsSmallScreen(mq.matches)
+    update()
+    // Modern browsers: addEventListener; older may not support
+    mq.addEventListener?.('change', update)
+    return () => {
+      mq.removeEventListener?.('change', update)
+    }
+  }, [])
+
+  // Reset submenu states whenever the export menu closes
+  useEffect(() => {
+    if (!exportMenuOpen) {
+      setHoveredExportType(null)
+      setExpandedExportType(null)
+    }
+  }, [exportMenuOpen])
 
   const handleAddMember = (newMember: Member) => {
     setMembers(prev => [newMember, ...prev])
@@ -426,23 +450,27 @@ export default function MembersPage() {
               </button>
               {exportMenuOpen && (
                 <div
-                  className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-30 py-1"
-                  onMouseLeave={() => setHoveredExportType(null)}
+                  className="absolute right-0 mt-2 w-full sm:w-64 bg-white border border-gray-200 rounded-md shadow-lg z-30 py-1"
+                  onMouseLeave={() => { if (!isSmallScreen) setHoveredExportType(null) }}
                 >
                   {/* CSV submenu trigger */}
                   <div className="relative group">
                     <button
                       className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-gray-50"
-                      onMouseEnter={() => setHoveredExportType('csv')}
-                      onFocus={() => setHoveredExportType('csv')}
+                      onClick={() => { if (isSmallScreen) setExpandedExportType(expandedExportType === 'csv' ? null : 'csv') }}
+                      onMouseEnter={() => { if (!isSmallScreen) setHoveredExportType('csv') }}
+                      onFocus={() => { if (!isSmallScreen) setHoveredExportType('csv') }}
                       aria-haspopup="menu"
-                      aria-expanded={hoveredExportType === 'csv'}
+                      aria-expanded={isSmallScreen ? expandedExportType === 'csv' : hoveredExportType === 'csv'}
                     >
                       <span>Export as CSV</span>
                       <ChevronRightIcon className="w-4 h-4 text-gray-400" />
                     </button>
-                    {hoveredExportType === 'csv' && (
-                      <div className="absolute top-0 right-full mr-1 w-64 max-h-[70vh] overflow-auto bg-white border border-gray-200 rounded-md shadow-lg z-40 py-1">
+                    {(isSmallScreen ? expandedExportType === 'csv' : hoveredExportType === 'csv') && (
+                      <div className={isSmallScreen ?
+                        'mt-1 w-full max-h-[70vh] overflow-auto bg-white border-t border-gray-200 py-1' :
+                        'absolute top-0 right-full mr-1 w-64 max-h-[70vh] overflow-auto bg-white border border-gray-200 rounded-md shadow-lg z-40 py-1'
+                      }>
                         <button
                           className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
                           onClick={() => handleExport('current', 'csv')}
@@ -463,16 +491,20 @@ export default function MembersPage() {
                   <div className="relative group">
                     <button
                       className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-gray-50"
-                      onMouseEnter={() => setHoveredExportType('pdf')}
-                      onFocus={() => setHoveredExportType('pdf')}
+                      onClick={() => { if (isSmallScreen) setExpandedExportType(expandedExportType === 'pdf' ? null : 'pdf') }}
+                      onMouseEnter={() => { if (!isSmallScreen) setHoveredExportType('pdf') }}
+                      onFocus={() => { if (!isSmallScreen) setHoveredExportType('pdf') }}
                       aria-haspopup="menu"
-                      aria-expanded={hoveredExportType === 'pdf'}
+                      aria-expanded={isSmallScreen ? expandedExportType === 'pdf' : hoveredExportType === 'pdf'}
                     >
                       <span>Export as PDF</span>
                       <ChevronRightIcon className="w-4 h-4 text-gray-400" />
                     </button>
-                    {hoveredExportType === 'pdf' && (
-                      <div className="absolute top-0 right-full mr-1 w-72 max-h-[70vh] overflow-auto bg-white border border-gray-200 rounded-md shadow-lg z-40 py-1">
+                    {(isSmallScreen ? expandedExportType === 'pdf' : hoveredExportType === 'pdf') && (
+                      <div className={isSmallScreen ?
+                        'mt-1 w-full max-h-[70vh] overflow-auto bg-white border-t border-gray-200 py-1' :
+                        'absolute top-0 right-full mr-1 w-72 max-h-[70vh] overflow-auto bg-white border border-gray-200 rounded-md shadow-lg z-40 py-1'
+                      }>
                         <button
                           className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
                           onClick={() => handleExport('current', 'pdf')}
