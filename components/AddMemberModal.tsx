@@ -456,13 +456,13 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[1000] overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="fixed inset-0 z-[1000]">
+      <div className="flex min-h-screen md:items-center md:justify-center md:p-4">
         <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose} />
         
-        <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="relative bg-white w-full h-[100dvh] md:h-auto md:max-w-2xl md:rounded-lg md:shadow-xl md:my-8 flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b">
+          <div className="sticky top-0 z-10 bg-white border-b header-safe px-4 py-4 md:static md:px-6 md:py-6 flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold text-gray-900">{mode === 'edit' ? 'Edit Member' : 'Add New Member'}</h2>
               <p className="text-sm text-gray-600 mt-1">
@@ -478,7 +478,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form id="addMemberForm" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
             {/* General Error */}
             {errors.general && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center">
@@ -522,7 +522,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
             </div>
 
             {/* Name Fields */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   First Name *
@@ -553,7 +553,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
             </div>
 
             {/* Contact Fields */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email *
@@ -584,7 +584,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
             </div>
 
             {/* DOB & Blood Group */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Date of Birth
@@ -617,7 +617,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
             </div>
 
             {/* Profession & Business Name */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Profession *
@@ -648,7 +648,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
             </div>
 
             {/* Status */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Status *
@@ -693,7 +693,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
             </div>
 
             {/* Pincode, Area, City, State */}
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Pincode *
@@ -779,32 +779,34 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
               />
             </div>
 
-            {/* Submit Buttons */}
-            <div className="flex justify-end space-x-3 pt-6 border-t">
-              <button
-                type="button"
-                onClick={onClose}
-                className="btn-secondary"
-                disabled={isLoading}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn-primary"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    {mode === 'edit' ? 'Saving Changes...' : 'Creating Member...'}
-                  </div>
-                ) : (
-                  (mode === 'edit' ? 'Save Changes' : 'Create Member')
-                )}
-              </button>
-            </div>
           </form>
+
+          {/* Actions */}
+          <div className="sticky bottom-0 bg-white border-t footer-safe px-4 py-3 md:px-6 md:py-4 flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn-secondary"
+              disabled={isLoading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="addMemberForm"
+              className="btn-primary"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="flex items-center">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  {mode === 'edit' ? 'Saving Changes...' : 'Creating Member...'}
+                </div>
+              ) : (
+                (mode === 'edit' ? 'Save Changes' : 'Create Member')
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

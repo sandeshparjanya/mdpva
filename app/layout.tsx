@@ -17,7 +17,7 @@ export default function RootLayout({
         <main className="flex-1">
           {children}
         </main>
-        <footer className="py-4 text-center text-gray-500 text-sm">
+        <footer className="py-4 footer-safe text-center text-gray-500 text-sm">
           <div>© MDPVA</div>
           <div>Developed by - Mindsfire Pvt Ltd.</div>
         </footer>

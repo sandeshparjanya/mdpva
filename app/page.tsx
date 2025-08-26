@@ -47,17 +47,17 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Left Side - MDPVA Information */}
-      <div className="flex-1 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 flex items-center justify-center p-8">
+      <div className="order-2 lg:order-1 w-full lg:flex-1 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 flex items-center justify-center p-8">
         <div className="max-w-lg text-center text-white">
           {/* Logo and Header */}
           <div className="mb-8">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full mb-6">
               <CameraIcon className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-5xl font-bold mb-4">MDPVA</h1>
-            <p className="text-xl text-primary-100 mb-8">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">MDPVA</h1>
+            <p className="text-lg md:text-xl text-primary-100 mb-8">
               Mysore District Photographer and<br />
               Videographers Association
             </p>
@@ -65,7 +65,7 @@ export default function LoginPage() {
 
           {/* Association Description */}
           <div className="space-y-6 text-primary-100">
-            <p className="text-lg leading-relaxed">
+            <p className="text-base md:text-lg leading-relaxed">
               Connecting creative professionals across Mysore district. Join our community of talented photographers and videographers.
             </p>
             
@@ -91,8 +91,8 @@ export default function LoginPage() {
       </div>
 
       {/* Right Side - Admin Login */}
-      <div className="flex-1 bg-gray-50 flex items-center justify-center p-8">
-        <div className="max-w-md w-full">
+      <div className="order-1 lg:order-2 w-full lg:flex-1 bg-gray-50 flex items-center justify-center p-8">
+        <div className="max-w-md w-full mx-auto">
           {/* Login Card */}
           <div className="card">
             <div className="text-center mb-8">
