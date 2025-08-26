@@ -555,7 +555,16 @@ export default function MembersImportPage() {
         <div className="flex items-center justify-between">
           <button className="btn-secondary" onClick={goBack} disabled={!canGoBack}>Back</button>
           {activeStep === 'Apply' ? (
-            <Link href="/dashboard/members" className="btn-primary">Done</Link>
+            applyResult && !applyLoading ? (
+              <Link
+                href="/dashboard/members"
+                className="px-4 py-2 rounded-md bg-green-600 hover:bg-green-700 text-white font-medium"
+              >
+                Done
+              </Link>
+            ) : (
+              <div />
+            )
           ) : (
             <button
               className="btn-primary"
