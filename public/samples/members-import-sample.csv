@@ -1,0 +1,5 @@
+first_name,last_name,email,phone,profession,business_name,address_line1,address_line2,pincode,area,city,state,status,dob,blood_group,notes,profile_photo_url
+Ravi,Kumar,ravi.kumar@example.com,+919876543210,photographer,Ravi Studio,12 MG Road,,560001,Shivaji Nagar,Bengaluru,Karnataka,active,10/05/1988,O+,,
+Anita,Sharma,anita.sharma@example.com,+12025550123,videographer,Sharma Films,221B Baker Street,Opp. City Mall,110001,Connaught Place,New Delhi,Delhi,active,25/09/1990,A-,Senior editor,
+Syed,Ali,syed.ali@example.com,+971501234567,both,Ali Photos,45 Park Avenue,2nd Floor,500001,Abids,Hyderabad,Telangana,inactive,01/12/1985,B+,,
+Lakshmi,Menon,lakshmi.menon@example.com,+61412345678,photographer,Menon Clicks,789 Beach Road,,682001,Fort Kochi,Kochi,Kerala,active,14/03/1992,AB+,Note about membership,
