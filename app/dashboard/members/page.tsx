@@ -395,8 +395,8 @@ export default function MembersPage() {
   return (
     <Sidebar>
       {/* Header Section */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex justify-between items-start">
+      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             {/* Breadcrumb */}
             <nav className="flex text-sm text-gray-500 mb-2">
@@ -413,11 +413,11 @@ export default function MembersPage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center space-x-3">
-            <Link href="/dashboard/members/import" className="btn-secondary">Import</Link>
-            <div className="relative">
+          <div className="w-full sm:w-auto flex flex-wrap items-center gap-2 sm:gap-3">
+            <Link href="/dashboard/members/import" className="btn-secondary w-full sm:w-auto">Import</Link>
+            <div className="relative w-full sm:w-auto">
               <button 
-                className="btn-secondary"
+                className="btn-secondary w-full sm:w-auto"
                 onClick={() => setExportMenuOpen(o => !o)}
                 aria-haspopup="menu"
                 aria-expanded={exportMenuOpen}
@@ -496,7 +496,7 @@ export default function MembersPage() {
                 console.log('Add Member button clicked')
                 setIsAddModalOpen(true)
               }}
-              className="btn-primary flex items-center"
+              className="btn-primary w-full sm:w-auto justify-center flex items-center"
             >
               <PlusIcon className="w-4 h-4 mr-2" />
               Add Member

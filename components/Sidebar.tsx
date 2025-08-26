@@ -221,7 +221,7 @@ export default function Sidebar({ children }: SidebarProps) {
   )
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Mobile sidebar overlay */}
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
@@ -255,7 +255,7 @@ export default function Sidebar({ children }: SidebarProps) {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden min-h-0">
         {/* Top bar for mobile */}
         <div className="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
           <div className="flex items-center justify-between">
