@@ -16,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Member } from '../../../lib/memberUtils'
 import { createClient } from '../../../lib/supabase'
 
@@ -413,6 +414,7 @@ export default function MembersPage() {
 
           {/* Action Buttons */}
           <div className="flex items-center space-x-3">
+            <Link href="/dashboard/members/import" className="btn-secondary">Import</Link>
             <div className="relative">
               <button 
                 className="btn-secondary"
