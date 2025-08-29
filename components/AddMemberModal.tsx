@@ -460,20 +460,20 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
       <div className="flex min-h-screen md:items-center md:justify-center md:p-4">
         <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose} />
         
-        <div className="relative bg-white w-full h-[100dvh] md:h-auto md:max-w-2xl md:rounded-lg md:shadow-xl md:my-8 flex flex-col">
+        <div className="relative bg-white dark:bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-2xl md:rounded-lg md:shadow-xl md:my-8 flex flex-col">
           {/* Header */}
-          <div className="sticky top-0 z-10 bg-white border-b header-safe px-4 py-4 md:static md:px-6 md:py-6 flex items-center justify-between">
+          <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b dark:border-gray-700 header-safe px-4 py-4 md:static md:px-6 md:py-6 flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">{mode === 'edit' ? 'Edit Member' : 'Add New Member'}</h2>
-              <p className="text-sm text-gray-600 mt-1">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{mode === 'edit' ? 'Edit Member' : 'Add New Member'}</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                 Member ID: <span className="font-mono text-primary-600">{mode === 'edit' && initialMember ? initialMember.member_id : memberID}</span>
               </p>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
-              <XMarkIcon className="w-5 h-5" />
+              <XMarkIcon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
             </button>
           </div>
 
@@ -481,23 +481,23 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
           <form id="addMemberForm" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
             {/* General Error */}
             {errors.general && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center">
-                <ExclamationTriangleIcon className="w-5 h-5 text-red-500 mr-2" />
-                <span className="text-sm text-red-700">{errors.general}</span>
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-center">
+                <ExclamationTriangleIcon className="w-5 h-5 text-red-500 dark:text-red-400 mr-2" />
+                <span className="text-sm text-red-700 dark:text-red-300">{errors.general}</span>
               </div>
             )}
 
             {/* Profile Photo */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Profile Photo (optional)
               </label>
               <div className="flex items-center space-x-4">
-                <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
                   {photoPreview ? (
                     <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
-                    <PhotoIcon className="w-8 h-8 text-gray-400" />
+                    <PhotoIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                   )}
                 </div>
                 <div>
@@ -508,7 +508,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
                   >
                     {mode === 'edit' ? 'Change Photo' : 'Choose Photo'}
                   </button>
-                  <p className="text-xs text-gray-500 mt-1">JPG, PNG up to 2MB</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">JPG, PNG up to 2MB</p>
                 </div>
               </div>
               <input
@@ -524,108 +524,108 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
             {/* Name Fields */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   First Name *
                 </label>
                 <input
                   type="text"
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  className={`input-field ${errors.firstName ? 'border-red-300' : ''}`}
+                  className={`input-field dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 ${errors.firstName ? 'border-red-300' : ''}`}
                   placeholder="Enter first name"
                 />
-                {errors.firstName && <p className="text-sm text-red-600 mt-1">{errors.firstName}</p>}
+                {errors.firstName && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.firstName}</p>}
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Last Name *
                 </label>
                 <input
                   type="text"
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  className={`input-field ${errors.lastName ? 'border-red-300' : ''}`}
+                  className={`input-field dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 ${errors.lastName ? 'border-red-300' : ''}`}
                   placeholder="Enter last name"
                 />
-                {errors.lastName && <p className="text-sm text-red-600 mt-1">{errors.lastName}</p>}
+                {errors.lastName && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.lastName}</p>}
               </div>
             </div>
 
             {/* Contact Fields */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Email *
                 </label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={`input-field ${errors.email ? 'border-red-300' : ''}`}
+                  className={`input-field dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 ${errors.email ? 'border-red-300' : ''}`}
                   placeholder="Enter email address"
                 />
-                {errors.email && <p className="text-sm text-red-600 mt-1">{errors.email}</p>}
+                {errors.email && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.email}</p>}
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Phone *
                 </label>
                 <input
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className={`input-field ${errors.phone ? 'border-red-300' : ''}`}
+                  className={`input-field dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 ${errors.phone ? 'border-red-300' : ''}`}
                   placeholder="Enter phone number"
                 />
-                {errors.phone && <p className="text-sm text-red-600 mt-1">{errors.phone}</p>}
+                {errors.phone && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.phone}</p>}
               </div>
             </div>
 
             {/* DOB & Blood Group */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Date of Birth
                 </label>
                 <input
                   type="date"
                   value={formData.dob}
                   onChange={(e) => handleInputChange('dob', e.target.value)}
-                  className={`input-field ${errors.dob ? 'border-red-300' : ''}`}
+                  className={`input-field dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 ${errors.dob ? 'border-red-300' : ''}`}
                 />
-                {errors.dob && <p className="text-sm text-red-600 mt-1">{errors.dob}</p>}
+                {errors.dob && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.dob}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Blood Group
                 </label>
                 <select
                   value={formData.bloodGroup}
                   onChange={(e) => handleInputChange('bloodGroup', e.target.value)}
-                  className={`input-field ${errors.bloodGroup ? 'border-red-300' : ''}`}
+                  className={`input-field dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 ${errors.bloodGroup ? 'border-red-300' : ''}`}
                 >
                   <option value="">Select blood group (optional)</option>
                   {allowedBloodGroups.map(bg => (
                     <option key={bg} value={bg}>{bg}</option>
                   ))}
                 </select>
-                {errors.bloodGroup && <p className="text-sm text-red-600 mt-1">{errors.bloodGroup}</p>}
+                {errors.bloodGroup && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.bloodGroup}</p>}
               </div>
             </div>
 
             {/* Profession & Business Name */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Profession *
                 </label>
                 <select
                   value={formData.profession}
                   onChange={(e) => handleInputChange('profession', e.target.value)}
-                  className="input-field"
+                  className="input-field dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
                 >
                   <option value="photographer">Photographer</option>
                   <option value="videographer">Videographer</option>
@@ -634,14 +634,14 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Business Name
                 </label>
                 <input
                   type="text"
                   value={formData.businessName}
                   onChange={(e) => handleInputChange('businessName', e.target.value)}
-                  className="input-field"
+                  className="input-field dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
                   placeholder="Enter business name (optional)"
                 />
               </div>
@@ -650,13 +650,13 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
             {/* Status */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Status *
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => handleInputChange('status', e.target.value)}
-                  className="input-field"
+                  className="input-field dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
@@ -666,28 +666,28 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
 
             {/* Address Fields */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                 Address Line 1 *
               </label>
               <input
                 type="text"
                 value={formData.addressLine1}
                 onChange={(e) => handleInputChange('addressLine1', e.target.value)}
-                className={`input-field ${errors.addressLine1 ? 'border-red-300' : ''}`}
+                className={`input-field dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 ${errors.addressLine1 ? 'border-red-300' : ''}`}
                 placeholder="Enter address line 1"
               />
-              {errors.addressLine1 && <p className="text-sm text-red-600 mt-1">{errors.addressLine1}</p>}
+              {errors.addressLine1 && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.addressLine1}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                 Address Line 2
               </label>
               <input
                 type="text"
                 value={formData.addressLine2}
                 onChange={(e) => handleInputChange('addressLine2', e.target.value)}
-                className="input-field"
+                className="input-field dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
                 placeholder="Enter address line 2 (optional)"
               />
             </div>
@@ -695,22 +695,22 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
             {/* Pincode, Area, City, State */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Pincode *
                 </label>
                 <input
                   type="text"
                   value={formData.pincode}
                   onChange={(e) => handlePincodeChange(e.target.value)}
-                  className={`input-field ${errors.pincode ? 'border-red-300' : ''}`}
+                  className={`input-field dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 ${errors.pincode ? 'border-red-300' : ''}`}
                   placeholder="Enter pincode"
                   maxLength={6}
                 />
-                {errors.pincode && <p className="text-sm text-red-600 mt-1">{errors.pincode}</p>}
+                {errors.pincode && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.pincode}</p>}
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Area {availableAreas.length > 0 ? '*' : '(not available for this PIN)'}
                 </label>
                 {availableAreas.length > 0 ? (
@@ -718,48 +718,48 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
                     <select
                       value={formData.area}
                       onChange={(e) => handleInputChange('area', e.target.value)}
-                      className={`input-field ${errors.area ? 'border-red-300' : ''}`}
+                      className={`input-field dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 ${errors.area ? 'border-red-300' : ''}`}
                     >
                       <option value="">Select area</option>
                       {availableAreas.map((a) => (
                         <option key={a} value={a}>{a}</option>
                       ))}
                     </select>
-                    {errors.area && <p className="text-sm text-red-600 mt-1">{errors.area}</p>}
+                    {errors.area && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.area}</p>}
                   </>
                 ) : (
                   <input
                     type="text"
                     value=""
                     readOnly
-                    className="input-field bg-gray-50"
+                    className="input-field bg-gray-50 dark:bg-gray-800 dark:text-gray-200"
                     placeholder="Not available for this PIN"
                   />
                 )}
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   City
                 </label>
                 <input
                   type="text"
                   value={formData.city}
                   readOnly
-                  className="input-field bg-gray-50"
+                  className="input-field bg-gray-50 dark:bg-gray-800 dark:text-gray-200"
                   placeholder="Auto-filled"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   State
                 </label>
                 <input
                   type="text"
                   value={formData.state}
                   readOnly
-                  className="input-field bg-gray-50"
+                  className="input-field bg-gray-50 dark:bg-gray-800 dark:text-gray-200"
                   placeholder="Auto-filled"
                 />
               </div>
@@ -767,13 +767,13 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
 
             {/* Notes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                 Notes
               </label>
               <textarea
                 value={formData.notes}
                 onChange={(e) => handleInputChange('notes', e.target.value)}
-                className="input-field"
+                className="input-field dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
                 rows={3}
                 placeholder="Add any additional notes (optional)"
               />
@@ -782,7 +782,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, mode = 'add
           </form>
 
           {/* Actions */}
-          <div className="sticky bottom-0 bg-white border-t footer-safe px-4 py-3 md:px-6 md:py-4 flex justify-end space-x-3">
+          <div className="sticky bottom-0 bg-white dark:bg-gray-900 border-t dark:border-gray-700 footer-safe px-4 py-3 md:px-6 md:py-4 flex justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}

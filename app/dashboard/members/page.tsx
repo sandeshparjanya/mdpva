@@ -24,7 +24,7 @@ export default function MembersPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [members, setMembers] = useState<Member[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>('')
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Member | null>(null)
@@ -145,7 +145,7 @@ export default function MembersPage() {
     return (
       <div className="flex items-center space-x-2 md:absolute md:top-1/2 md:-translate-y-1/2 md:right-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity pointer-events-auto md:pointer-events-none z-20">
         <button
-          className="text-blue-600 hover:text-blue-800 inline-flex items-center text-sm bg-white/90 rounded px-2 py-1 pointer-events-auto"
+          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 inline-flex items-center text-sm bg-white/90 dark:bg-gray-800/80 rounded px-2 py-1 pointer-events-auto"
           onClick={(e) => { e.stopPropagation(); openEdit(member) }}
           title="Edit"
         >
@@ -153,7 +153,7 @@ export default function MembersPage() {
         </button>
         <button
           type="button"
-          className="text-red-600 hover:text-red-800 inline-flex items-center text-sm bg-white/90 rounded px-2 py-1 disabled:opacity-50 pointer-events-auto"
+          className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 inline-flex items-center text-sm bg-white/90 dark:bg-gray-800/80 rounded px-2 py-1 disabled:opacity-50 pointer-events-auto"
           onClick={(e) => { e.stopPropagation(); setConfirmTarget(member) }}
           disabled={loading}
           title="Delete"
@@ -419,19 +419,19 @@ export default function MembersPage() {
   return (
     <Sidebar>
       {/* Header Section */}
-      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             {/* Breadcrumb */}
-            <nav className="flex text-sm text-gray-500 mb-2">
+            <nav className="flex text-sm text-gray-500 dark:text-gray-400 mb-2">
               <span>Dashboard</span>
               <span className="mx-2">/</span>
-              <span className="text-gray-900 font-medium">Members</span>
+              <span className="text-gray-900 dark:text-gray-100 font-medium">Members</span>
             </nav>
             
             {/* Page Title */}
-            <h1 className="text-2xl font-bold text-gray-900">Members</h1>
-            <p className="text-sm text-gray-600 mt-1">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Members</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Manage MDPVA photographer and videographer members
             </p>
           </div>
@@ -450,13 +450,13 @@ export default function MembersPage() {
               </button>
               {exportMenuOpen && (
                 <div
-                  className="absolute right-0 mt-2 w-full sm:w-64 bg-white border border-gray-200 rounded-md shadow-lg z-30 py-1"
+                  className="absolute right-0 mt-2 w-full sm:w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-30 py-1"
                   onMouseLeave={() => { if (!isSmallScreen) setHoveredExportType(null) }}
                 >
                   {/* CSV submenu trigger */}
                   <div className="relative group">
                     <button
-                      className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-gray-50"
+                      className="w-full flex items-center justify-between px-3 py-3 sm:py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/60"
                       onClick={() => { if (isSmallScreen) setExpandedExportType(expandedExportType === 'csv' ? null : 'csv') }}
                       onMouseEnter={() => { if (!isSmallScreen) setHoveredExportType('csv') }}
                       onFocus={() => { if (!isSmallScreen) setHoveredExportType('csv') }}
@@ -464,21 +464,23 @@ export default function MembersPage() {
                       aria-expanded={isSmallScreen ? expandedExportType === 'csv' : hoveredExportType === 'csv'}
                     >
                       <span>Export as CSV</span>
-                      <ChevronRightIcon className="w-4 h-4 text-gray-400" />
+                      <ChevronRightIcon
+                        className={`w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform ${isSmallScreen && (expandedExportType === 'csv') ? 'rotate-90' : ''}`}
+                      />
                     </button>
                     {(isSmallScreen ? expandedExportType === 'csv' : hoveredExportType === 'csv') && (
                       <div className={isSmallScreen ?
-                        'mt-1 w-full max-h-[70vh] overflow-auto bg-white border-t border-gray-200 py-1' :
-                        'absolute top-0 right-full mr-1 w-64 max-h-[70vh] overflow-auto bg-white border border-gray-200 rounded-md shadow-lg z-40 py-1'
+                        'mt-1 w-full max-h-[70vh] overflow-auto bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-1' :
+                        'absolute top-0 right-full mr-1 w-64 max-h-[70vh] overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-40 py-1'
                       }>
                         <button
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                          className="w-full text-left px-3 py-3 sm:py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/60"
                           onClick={() => handleExport('current', 'csv')}
                         >
                           Export current view (CSV)
                         </button>
                         <button
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                          className="w-full text-left px-3 py-3 sm:py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/60"
                           onClick={() => handleExport('all', 'csv')}
                         >
                           Export all members (CSV)
@@ -490,7 +492,7 @@ export default function MembersPage() {
                   {/* PDF submenu trigger */}
                   <div className="relative group">
                     <button
-                      className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-gray-50"
+                      className="w-full flex items-center justify-between px-3 py-3 sm:py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/60"
                       onClick={() => { if (isSmallScreen) setExpandedExportType(expandedExportType === 'pdf' ? null : 'pdf') }}
                       onMouseEnter={() => { if (!isSmallScreen) setHoveredExportType('pdf') }}
                       onFocus={() => { if (!isSmallScreen) setHoveredExportType('pdf') }}
@@ -498,21 +500,23 @@ export default function MembersPage() {
                       aria-expanded={isSmallScreen ? expandedExportType === 'pdf' : hoveredExportType === 'pdf'}
                     >
                       <span>Export as PDF</span>
-                      <ChevronRightIcon className="w-4 h-4 text-gray-400" />
+                      <ChevronRightIcon
+                        className={`w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform ${isSmallScreen && (expandedExportType === 'pdf') ? 'rotate-90' : ''}`}
+                      />
                     </button>
                     {(isSmallScreen ? expandedExportType === 'pdf' : hoveredExportType === 'pdf') && (
                       <div className={isSmallScreen ?
-                        'mt-1 w-full max-h-[70vh] overflow-auto bg-white border-t border-gray-200 py-1' :
-                        'absolute top-0 right-full mr-1 w-72 max-h-[70vh] overflow-auto bg-white border border-gray-200 rounded-md shadow-lg z-40 py-1'
+                        'mt-1 w-full max-h-[70vh] overflow-auto bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-1' :
+                        'absolute top-0 right-full mr-1 w-72 max-h-[70vh] overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-40 py-1'
                       }>
                         <button
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                          className="w-full text-left px-3 py-3 sm:py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/60"
                           onClick={() => handleExport('current', 'pdf')}
                         >
                           Export current view (PDF with photos)
                         </button>
                         <button
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                          className="w-full text-left px-3 py-3 sm:py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/60"
                           onClick={() => handleExport('all', 'pdf')}
                         >
                           Export all members (PDF with photos)
@@ -556,7 +560,7 @@ export default function MembersPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <label htmlFor="sortBy" className="text-sm text-gray-600 whitespace-nowrap">Sort by</label>
+            <label htmlFor="sortBy" className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">Sort by</label>
             <select
               id="sortBy"
               className="input-field pr-10 min-w-[220px]"
@@ -579,14 +583,14 @@ export default function MembersPage() {
       <div className="p-6">
         {/* Error Alert */}
         {error && (
-          <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="mb-4 rounded-md border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300">
             {error}
           </div>
         )}
 
         {/* Export banner */}
         {exportBanner && (
-          <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+          <div className="mb-4 rounded-md border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 p-3 text-sm text-blue-700 dark:text-blue-300">
             {exportBanner}
           </div>
         )}
@@ -594,7 +598,7 @@ export default function MembersPage() {
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div
-            className={`bg-white rounded-lg border p-4 ${flashCard === 'all' ? 'ring-2 ring-blue-500 border-blue-300' : 'border-gray-200 hover:shadow-md cursor-pointer'}`}
+            className={`bg-white dark:bg-gray-800 rounded-lg border p-4 ${flashCard === 'all' ? 'ring-2 ring-blue-500 border-blue-300 dark:border-blue-600' : 'border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-none cursor-pointer'}`}
             onClick={() => handleStatClick('all')}
             role="button"
             tabIndex={0}
@@ -602,15 +606,15 @@ export default function MembersPage() {
           >
             <div className="flex items-center">
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Members</p>
-                <p className="text-2xl font-bold text-gray-900">{totalMembers.toLocaleString()}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Members</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{totalMembers.toLocaleString()}</p>
               </div>
               <UsersIcon className="w-8 h-8 text-blue-500" />
             </div>
           </div>
           
           <div
-            className={`bg-white rounded-lg border p-4 ${flashCard === 'active' ? 'ring-2 ring-blue-500 border-blue-300' : 'border-gray-200 hover:shadow-md cursor-pointer'}`}
+            className={`bg-white dark:bg-gray-800 rounded-lg border p-4 ${flashCard === 'active' ? 'ring-2 ring-blue-500 border-blue-300 dark:border-blue-600' : 'border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-none cursor-pointer'}`}
             onClick={() => handleStatClick('active')}
             role="button"
             tabIndex={0}
@@ -618,15 +622,15 @@ export default function MembersPage() {
           >
             <div className="flex items-center">
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Active</p>
-                <p className="text-2xl font-bold text-green-600">{activeMembers.toLocaleString()}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Active</p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{activeMembers.toLocaleString()}</p>
               </div>
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             </div>
           </div>
           
           <div
-            className={`bg-white rounded-lg border p-4 ${flashCard === 'newThisMonth' ? 'ring-2 ring-blue-500 border-blue-300' : 'border-gray-200 hover:shadow-md cursor-pointer'}`}
+            className={`bg-white dark:bg-gray-800 rounded-lg border p-4 ${flashCard === 'newThisMonth' ? 'ring-2 ring-blue-500 border-blue-300 dark:border-blue-600' : 'border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-none cursor-pointer'}`}
             onClick={() => handleStatClick('newThisMonth')}
             role="button"
             tabIndex={0}
@@ -634,15 +638,15 @@ export default function MembersPage() {
           >
             <div className="flex items-center">
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">New This Month</p>
-                <p className="text-2xl font-bold text-blue-600">{newThisMonth.toLocaleString()}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">New This Month</p>
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{newThisMonth.toLocaleString()}</p>
               </div>
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
             </div>
           </div>
           
           <div
-            className={`bg-white rounded-lg border p-4 ${flashCard === 'inactive' ? 'ring-2 ring-blue-500 border-blue-300' : 'border-gray-200 hover:shadow-md cursor-pointer'}`}
+            className={`bg-white dark:bg-gray-800 rounded-lg border p-4 ${flashCard === 'inactive' ? 'ring-2 ring-blue-500 border-blue-300 dark:border-blue-600' : 'border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-none cursor-pointer'}`}
             onClick={() => handleStatClick('inactive')}
             role="button"
             tabIndex={0}
@@ -650,8 +654,8 @@ export default function MembersPage() {
           >
             <div className="flex items-center">
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Inactive</p>
-                <p className="text-2xl font-bold text-gray-500">{inactiveMembers.toLocaleString()}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Inactive</p>
+                <p className="text-2xl font-bold text-gray-500 dark:text-gray-400">{inactiveMembers.toLocaleString()}</p>
               </div>
               <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
             </div>
@@ -691,15 +695,15 @@ export default function MembersPage() {
 
         {/* Members List / Empty State */}
         {loading ? (
-          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center text-gray-600">
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-12 text-center text-gray-600 dark:text-gray-300">
             Loading members...
           </div>
-        ) : members.length === 0 ? (
-          <div className="bg-white rounded-lg border border-gray-200 p-12">
+        ) : members.length === 0 && !error ? (
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-12">
             <div className="text-center">
-              <UsersIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-4 text-lg font-medium text-gray-900">No members found</h3>
-              <p className="mt-2 text-sm text-gray-500">
+              <UsersIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-400" />
+              <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No members found</h3>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                 {searchQuery ? 'Try a different search.' : 'Get started by adding your first member to the MDPVA database.'}
               </p>
               {!searchQuery && (
@@ -726,7 +730,7 @@ export default function MembersPage() {
                 {members.map((m) => (
                   <div
                     key={m.id || m.member_id}
-                    className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm active:bg-gray-50"
+                    className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm active:bg-gray-50 dark:active:bg-gray-700"
                     onClick={() => openPeek(m)}
                     role="button"
                     tabIndex={0}
@@ -750,8 +754,8 @@ export default function MembersPage() {
                           )}
                         </div>
                         <div>
-                          <div className="text-base font-semibold text-gray-900">{m.first_name} {m.last_name}</div>
-                          <div className="text-xs text-gray-500 font-mono flex items-center gap-1">
+                          <div className="text-base font-semibold text-gray-900 dark:text-gray-100">{m.first_name} {m.last_name}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1">
                             <span>{m.member_id}</span>
                             <button
                               type="button"
@@ -795,11 +799,11 @@ export default function MembersPage() {
 
                     <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
                       <div>
-                        <div className="text-xs text-gray-500">Profession</div>
-                        <div className="text-gray-900 capitalize">{m.profession}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Profession</div>
+                        <div className="text-gray-900 dark:text-gray-100 capitalize">{m.profession}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500">Status</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Status</div>
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           m.status === 'active' ? 'bg-green-100 text-green-800' :
                           m.status === 'inactive' ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'
@@ -808,20 +812,20 @@ export default function MembersPage() {
                         </span>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500">Email</div>
-                        <div className="text-gray-900 break-all">{m.email}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Email</div>
+                        <div className="text-gray-900 dark:text-gray-100 break-all">{m.email}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500">Phone</div>
-                        <div className="text-gray-900">{m.phone}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Phone</div>
+                        <div className="text-gray-900 dark:text-gray-100">{m.phone}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500">Location</div>
-                        <div className="text-gray-900">{m.area || m.city}{m.area ? `, ${m.city}, ${m.state}` : `, ${m.state}`}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Location</div>
+                        <div className="text-gray-900 dark:text-gray-100">{m.area || m.city}{m.area ? `, ${m.city}, ${m.state}` : `, ${m.state}`}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500">Created</div>
-                        <div className="text-gray-900">{m.created_at ? new Date(m.created_at).toLocaleDateString() : '-'}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Created</div>
+                        <div className="text-gray-900 dark:text-gray-100">{m.created_at ? new Date(m.created_at).toLocaleDateString() : '-'}</div>
                       </div>
                     </div>
                   </div>
@@ -830,7 +834,7 @@ export default function MembersPage() {
 
               {/* Pagination (Mobile) */}
               <div className="px-2 py-3 mt-2 flex items-center justify-between">
-                <div className="text-sm text-gray-600">Total: {total.toLocaleString()}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Total: {total.toLocaleString()}</div>
                 <div className="flex items-center space-x-3">
                   <button
                     className="btn-secondary"
@@ -839,7 +843,7 @@ export default function MembersPage() {
                   >
                     Previous
                   </button>
-                  <div className="text-sm text-gray-700">Page {page} of {Math.max(1, Math.ceil(total / pageSize))}</div>
+                  <div className="text-sm text-gray-700 dark:text-gray-300">Page {page} of {Math.max(1, Math.ceil(total / pageSize))}</div>
                   <button
                     className="btn-secondary"
                     onClick={() => setPage(p => (p < Math.ceil(total / pageSize) ? p + 1 : p))}
@@ -853,23 +857,23 @@ export default function MembersPage() {
 
             {/* Desktop Table */}
             <div className="hidden md:block">
-              <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+              <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-800/60">
                     <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profession</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Member</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Profession</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Contact</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Location</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                     {members.map((m) => (
                       <tr
                         key={m.id || m.member_id}
-                        className="relative group hover:bg-gray-50 cursor-pointer"
+                        className="relative group hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
                         onClick={() => openPeek(m)}
                         tabIndex={0}
                         onKeyDown={(e) => { if (e.key === 'Enter') openPeek(m) }}
@@ -890,8 +894,8 @@ export default function MembersPage() {
                               )}
                             </div>
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{m.first_name} {m.last_name}</div>
-                              <div className="text-xs text-gray-500 font-mono flex items-center gap-1">
+                              <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{m.first_name} {m.last_name}</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1">
                                 <span>{m.member_id}</span>
                                 <button
                                   type="button"
@@ -933,19 +937,19 @@ export default function MembersPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="relative">
-                            <div className="text-sm text-gray-900 capitalize">{m.profession}</div>
+                            <div className="text-sm text-gray-900 dark:text-gray-100 capitalize">{m.profession}</div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="relative">
-                            <div className="text-sm text-gray-900">{m.email}</div>
-                            <div className="text-sm text-gray-500">{m.phone}</div>
+                            <div className="text-sm text-gray-900 dark:text-gray-100">{m.email}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">{m.phone}</div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="relative">
-                            <div className="text-sm text-gray-900">{m.area || m.city}</div>
-                            <div className="text-sm text-gray-500">{m.area ? `${m.city}, ${m.state}` : m.state}</div>
+                            <div className="text-sm text-gray-900 dark:text-gray-100">{m.area || m.city}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">{m.area ? `${m.city}, ${m.state}` : m.state}</div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -958,7 +962,7 @@ export default function MembersPage() {
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                           <div className="relative">
                             {m.created_at ? new Date(m.created_at).toLocaleDateString() : '-'}
                           </div>
@@ -970,8 +974,8 @@ export default function MembersPage() {
               </div>
 
               {/* Pagination (Desktop) */}
-              <div className="px-6 py-3 flex items-center justify-between border-t bg-gray-50">
-                <div className="text-sm text-gray-600">Total: {total.toLocaleString()}</div>
+              <div className="px-6 py-3 flex items-center justify-between border-t bg-gray-50 dark:bg-gray-800/60 dark:border-gray-700">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Total: {total.toLocaleString()}</div>
                 <div className="flex items-center space-x-3">
                   <button
                     className="btn-secondary"
@@ -980,7 +984,7 @@ export default function MembersPage() {
                   >
                     Previous
                   </button>
-                  <div className="text-sm text-gray-700">Page {page} of {Math.max(1, Math.ceil(total / pageSize))}</div>
+                  <div className="text-sm text-gray-700 dark:text-gray-300">Page {page} of {Math.max(1, Math.ceil(total / pageSize))}</div>
                   <button
                     className="btn-secondary"
                     onClick={() => setPage(p => (p < Math.ceil(total / pageSize) ? p + 1 : p))}
@@ -1020,15 +1024,15 @@ export default function MembersPage() {
             />
             {/* Panel */}
             <div
-              className={`absolute right-0 top-0 h-full w-full sm:w-[420px] bg-white shadow-xl border-l transition-transform duration-300 ${isPeekOpen ? 'translate-x-0' : 'translate-x-full'}`}
+              className={`absolute right-0 top-0 h-full w-full sm:w-[420px] bg-white dark:bg-gray-900 shadow-xl border-l border-gray-200 dark:border-gray-700 transition-transform duration-300 ${isPeekOpen ? 'translate-x-0' : 'translate-x-full'}`}
               role="dialog"
               aria-modal="true"
             >
-              <div className="flex items-center justify-between p-4 border-b">
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                 <div>
-                  <div className="text-sm text-gray-500">Member</div>
-                  <div className="text-lg font-semibold text-gray-900">{selectedMember.first_name} {selectedMember.last_name}</div>
-                  <div className="text-xs text-gray-500 font-mono">{selectedMember.member_id}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Member</div>
+                  <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{selectedMember.first_name} {selectedMember.last_name}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 font-mono">{selectedMember.member_id}</div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
@@ -1045,8 +1049,8 @@ export default function MembersPage() {
                   >
                     <TrashIcon className="w-4 h-4 mr-1" /> Delete
                   </button>
-                  <button className="p-2 hover:bg-gray-100 rounded" onClick={closePeek} aria-label="Close">
-                    <XMarkIcon className="w-5 h-5" />
+                  <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" onClick={closePeek} aria-label="Close">
+                    <XMarkIcon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   </button>
                 </div>
               </div>
@@ -1054,7 +1058,7 @@ export default function MembersPage() {
               <div className="p-4 space-y-4 overflow-y-auto h-[calc(100%-56px)]">
                 {/* Avatar */}
                 <div className="flex items-center space-x-3">
-                  <div className="h-14 w-14 rounded-md bg-gray-100 overflow-hidden flex items-center justify-center">
+                  <div className="h-14 w-14 rounded-md bg-gray-100 dark:bg-gray-700 overflow-hidden flex items-center justify-center">
                     {selectedMember.profile_photo_url ? (
                       <Image
                         src={selectedMember.profile_photo_url}
@@ -1064,16 +1068,16 @@ export default function MembersPage() {
                         className="h-14 w-14 object-contain"
                       />
                     ) : (
-                      <div className="text-base text-gray-500">
+                      <div className="text-base text-gray-500 dark:text-gray-300">
                         {selectedMember.first_name.charAt(0)}{selectedMember.last_name.charAt(0)}
                       </div>
                     )}
                   </div>
                   <div>
-                    <div className="text-sm text-gray-600">Status</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Status</div>
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      selectedMember.status === 'active' ? 'bg-green-100 text-green-800' :
-                      selectedMember.status === 'inactive' ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'
+                      selectedMember.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
+                      selectedMember.status === 'inactive' ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
                     }`}>
                       {selectedMember.status}
                     </span>
@@ -1083,19 +1087,19 @@ export default function MembersPage() {
                 {/* Contact */}
                 <div className="grid grid-cols-1 gap-2">
                   <div>
-                    <div className="text-xs text-gray-500">Email</div>
-                    <div className="text-sm text-gray-900 break-all">{selectedMember.email}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">Email</div>
+                    <div className="text-sm text-gray-900 dark:text-gray-100 break-all">{selectedMember.email}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500">Phone</div>
-                    <div className="text-sm text-gray-900">{selectedMember.phone}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">Phone</div>
+                    <div className="text-sm text-gray-900 dark:text-gray-100">{selectedMember.phone}</div>
                   </div>
                 </div>
 
                 {/* Profession */}
                 <div>
-                  <div className="text-xs text-gray-500">Profession</div>
-                  <div className="text-sm text-gray-900 capitalize">{selectedMember.profession}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Profession</div>
+                  <div className="text-sm text-gray-900 dark:text-gray-100 capitalize">{selectedMember.profession}</div>
                 </div>
 
                 {/* Personal */}
@@ -1103,14 +1107,14 @@ export default function MembersPage() {
                   <div className="grid grid-cols-2 gap-2">
                     {selectedMember.dob && (
                       <div>
-                        <div className="text-xs text-gray-500">Date of Birth</div>
-                        <div className="text-sm text-gray-900">{new Date(selectedMember.dob as string).toLocaleDateString()}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Date of Birth</div>
+                        <div className="text-sm text-gray-900 dark:text-gray-100">{new Date(selectedMember.dob as string).toLocaleDateString()}</div>
                       </div>
                     )}
                     {selectedMember.blood_group && (
                       <div>
-                        <div className="text-xs text-gray-500">Blood Group</div>
-                        <div className="text-sm text-gray-900 uppercase">{selectedMember.blood_group}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Blood Group</div>
+                        <div className="text-sm text-gray-900 dark:text-gray-100 uppercase">{selectedMember.blood_group}</div>
                       </div>
                     )}
                   </div>
@@ -1119,15 +1123,15 @@ export default function MembersPage() {
                 {/* Business */}
                 {selectedMember.business_name && (
                   <div>
-                    <div className="text-xs text-gray-500">Business</div>
-                    <div className="text-sm text-gray-900">{selectedMember.business_name}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">Business</div>
+                    <div className="text-sm text-gray-900 dark:text-gray-100">{selectedMember.business_name}</div>
                   </div>
                 )}
 
                 {/* Address */}
                 <div>
-                  <div className="text-xs text-gray-500">Address</div>
-                  <div className="text-sm text-gray-900">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Address</div>
+                  <div className="text-sm text-gray-900 dark:text-gray-100">
                     {selectedMember.address_line1}
                     {selectedMember.address_line2 ? (<><br />{selectedMember.address_line2}</>) : null}
                     {selectedMember.area ? (<><br />{selectedMember.area}</>) : null}
@@ -1138,20 +1142,20 @@ export default function MembersPage() {
                 {/* Notes */}
                 {selectedMember.notes && (
                   <div>
-                    <div className="text-xs text-gray-500">Notes</div>
-                    <div className="text-sm text-gray-900 whitespace-pre-wrap">{selectedMember.notes}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">Notes</div>
+                    <div className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{selectedMember.notes}</div>
                   </div>
                 )}
 
                 {/* Dates */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <div className="text-xs text-gray-500">Created</div>
-                    <div className="text-sm text-gray-900">{selectedMember.created_at ? new Date(selectedMember.created_at).toLocaleString() : '-'}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">Created</div>
+                    <div className="text-sm text-gray-900 dark:text-gray-100">{selectedMember.created_at ? new Date(selectedMember.created_at).toLocaleString() : '-'}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500">Updated</div>
-                    <div className="text-sm text-gray-900">{selectedMember.updated_at ? new Date(selectedMember.updated_at).toLocaleString() : '-'}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">Updated</div>
+                    <div className="text-sm text-gray-900 dark:text-gray-100">{selectedMember.updated_at ? new Date(selectedMember.updated_at).toLocaleString() : '-'}</div>
                   </div>
                 </div>
               </div>
@@ -1164,15 +1168,15 @@ export default function MembersPage() {
           <div className="fixed inset-0 z-[1000] flex items-center justify-center">
             <div className="absolute inset-0 bg-black bg-opacity-30" onClick={() => setConfirmTarget(null)} />
             <div
-              className="relative bg-white rounded-lg shadow-xl border w-full max-w-md mx-4 p-6"
+              className="relative bg-white dark:bg-gray-900 rounded-lg shadow-xl border dark:border-gray-700 w-full max-w-md mx-4 p-6"
               onClick={(e) => e.stopPropagation()}
               role="dialog"
               aria-modal="true"
             >
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete member</h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Delete member</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
                 Are you sure you want to delete{' '}
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-gray-900 dark:text-gray-100">
                   {confirmTarget.first_name} {confirmTarget.last_name} ({confirmTarget.member_id})
                 </span>
                 ? This is a soft delete and can be undone later.

@@ -219,19 +219,19 @@ export default function MembersImportPage() {
   return (
     <Sidebar>
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             {/* Breadcrumb */}
-            <nav className="flex text-sm text-gray-500 mb-2" aria-label="Breadcrumb">
+            <nav className="flex text-sm text-gray-500 dark:text-gray-400 mb-2" aria-label="Breadcrumb">
               <Link href="/dashboard" className="hover:underline">Dashboard</Link>
               <span className="mx-2">/</span>
               <Link href="/dashboard/members" className="hover:underline">Members</Link>
               <span className="mx-2">/</span>
-              <span className="text-gray-900 font-medium">Import</span>
+              <span className="text-gray-900 dark:text-gray-100 font-medium">Import</span>
             </nav>
-            <h1 className="text-2xl font-bold text-gray-900">Import Members</h1>
-            <p className="text-sm text-gray-600 mt-1">Upload a CSV, map columns, dry-run validation, and import members in bulk.</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Import Members</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">Upload a CSV, map columns, dry-run validation, and import members in bulk.</p>
           </div>
           <div className="w-full sm:w-auto flex flex-wrap items-center gap-2">
             <Link href="/samples/members-import-sample.csv" className="btn-secondary w-full sm:w-auto" prefetch={false}>
@@ -245,7 +245,7 @@ export default function MembersImportPage() {
       {/* Content */}
       <div className="p-6 space-y-6">
         {/* Stepper */}
-        <ol className="flex items-center w-full text-sm text-gray-600 overflow-x-auto" role="list">
+        <ol className="flex items-center w-full text-sm text-gray-600 dark:text-gray-300 overflow-x-auto" role="list">
           {steps.map((s, i) => {
             const isActive = s === activeStep
             const isComplete = steps.indexOf(activeStep) > i
@@ -253,7 +253,7 @@ export default function MembersImportPage() {
               <li key={s} className="flex items-center">
                 <button
                   type="button"
-                  className={`flex items-center px-2 py-1 rounded ${isActive ? 'text-blue-700 font-medium' : isComplete ? 'text-green-700' : 'text-gray-600'} hover:bg-gray-50`}
+                  className={`flex items-center px-2 py-1 rounded ${isActive ? 'text-blue-700 font-medium' : isComplete ? 'text-green-700' : 'text-gray-600'} hover:bg-gray-50 dark:hover:bg-gray-800`}
                   onClick={() => { if (isComplete) setActiveStep(s) }}
                   aria-current={isActive ? 'step' : undefined}
                 >
@@ -262,20 +262,20 @@ export default function MembersImportPage() {
                   </span>
                   {s}
                 </button>
-                {i < steps.length - 1 && <span className="mx-2 text-gray-300">→</span>}
+                {i < steps.length - 1 && <span className="mx-2 text-gray-300 dark:text-gray-600">→</span>}
               </li>
             )
           })}
         </ol>
 
         {/* Panels */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           {activeStep === 'Upload' && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Step 1: Upload CSV</h2>
-              <p className="text-sm text-gray-600">Select your CSV file (max 10MB). Use the template to ensure correct columns. We will only analyze until you confirm.</p>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Step 1: Upload CSV</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Select your CSV file (max 10MB). Use the template to ensure correct columns. We will only analyze until you confirm.</p>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">CSV File</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">CSV File</label>
                 <input type="file" accept=".csv" className="block w-full text-sm" onChange={handleFileChange} />
               </div>
               {uploading && (
@@ -285,27 +285,27 @@ export default function MembersImportPage() {
                 <p className="text-sm text-red-600">{error}</p>
               )}
               {analysis && (
-                <div className="border rounded p-3 bg-gray-50">
-                  <div className="text-sm text-gray-800 mb-2">
+                <div className="border rounded p-3 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+                  <div className="text-sm text-gray-800 dark:text-gray-200 mb-2">
                     <span className="font-medium">File:</span> {analysis.fileName} · {(analysis.fileSize / 1024).toFixed(1)} KB
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                    <div className="p-2 bg-white rounded border">
-                      <div className="text-gray-500">Headers</div>
+                    <div className="p-2 bg-white dark:bg-gray-900 rounded border dark:border-gray-700">
+                      <div className="text-gray-500 dark:text-gray-400">Headers</div>
                       <div className="font-medium">{analysis.headers.length}</div>
                     </div>
-                    <div className="p-2 bg-white rounded border">
-                      <div className="text-gray-500">Total Rows</div>
+                    <div className="p-2 bg-white dark:bg-gray-900 rounded border dark:border-gray-700">
+                      <div className="text-gray-500 dark:text-gray-400">Total Rows</div>
                       <div className="font-medium">{analysis.totalRows}</div>
                     </div>
-                    <div className="p-2 bg-white rounded border">
-                      <div className="text-gray-500">Missing Required</div>
+                    <div className="p-2 bg-white dark:bg-gray-900 rounded border dark:border-gray-700">
+                      <div className="text-gray-500 dark:text-gray-400">Missing Required</div>
                       <div className={`font-medium ${analysis.missingRequired.length ? 'text-red-600' : 'text-green-700'}`}>{analysis.missingRequired.length}</div>
                     </div>
                   </div>
                   <div className="mt-3 text-sm">
                     <div className="font-medium">Required fields</div>
-                    <div className="text-gray-700">{analysis.required.join(', ')}</div>
+                    <div className="text-gray-700 dark:text-gray-300">{analysis.required.join(', ')}</div>
                   </div>
                   {!!analysis.missingRequired.length && (
                     <div className="mt-2 text-sm text-red-700">
@@ -315,17 +315,17 @@ export default function MembersImportPage() {
                   <div className="mt-3">
                     <div className="text-sm font-medium mb-1">Preview (first 5 rows)</div>
                     <div className="overflow-x-auto">
-                      <table className="min-w-full text-xs border">
-                        <thead className="bg-gray-100">
+                      <table className="min-w-full text-xs border dark:border-gray-700">
+                        <thead className="bg-gray-100 dark:bg-gray-800">
                           <tr>
                             {analysis.headers.map(h => (
-                              <th key={h} className="px-2 py-1 text-left border-b">{h}</th>
+                              <th key={h} className="px-2 py-1 text-left border-b dark:border-gray-700">{h}</th>
                             ))}
                           </tr>
                         </thead>
                         <tbody>
                           {analysis.preview.map((row, idx) => (
-                            <tr key={idx} className="border-t">
+                            <tr key={idx} className="border-t dark:border-gray-700">
                               {analysis.headers.map(h => (
                                 <td key={h} className="px-2 py-1 align-top">{row[h] ?? ''}</td>
                               ))}
@@ -337,32 +337,32 @@ export default function MembersImportPage() {
                   </div>
                 </div>
               )}
-              <p className="text-xs text-gray-500">We’ll parse this on the server; no data will be written until you review the dry-run.</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">We’ll parse this on the server; no data will be written until you review the dry-run.</p>
             </div>
           )}
 
           {activeStep === 'Mapping' && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Step 2: Map Columns</h2>
-              <p className="text-sm text-gray-600">Map your CSV headers to member fields. Required fields must be mapped. DOB must be in <span className="font-medium">dd/mm/yyyy</span> format.</p>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Step 2: Map Columns</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Map your CSV headers to member fields. Required fields must be mapped. DOB must be in <span className="font-medium">dd/mm/yyyy</span> format.</p>
               {!analysis ? (
                 <div className="p-3 rounded bg-yellow-50 border text-sm text-yellow-800">Upload a file first.</div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="min-w-full text-sm border">
-                    <thead className="bg-gray-100">
+                  <table className="min-w-full text-sm border dark:border-gray-700">
+                    <thead className="bg-gray-100 dark:bg-gray-800">
                       <tr>
-                        <th className="px-3 py-2 text-left border-b">CSV Header</th>
-                        <th className="px-3 py-2 text-left border-b">Map to field</th>
+                        <th className="px-3 py-2 text-left border-b dark:border-gray-700">CSV Header</th>
+                        <th className="px-3 py-2 text-left border-b dark:border-gray-700">Map to field</th>
                       </tr>
                     </thead>
                     <tbody>
                       {analysis.headers.map((h) => (
-                        <tr key={h} className="border-t">
+                        <tr key={h} className="border-t dark:border-gray-700">
                           <td className="px-3 py-2 align-top font-mono text-xs">{h}</td>
                           <td className="px-3 py-2">
                             <select
-                              className="border rounded px-2 py-1 text-sm"
+                              className="border rounded px-2 py-1 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
                               value={mapping[h] ?? 'ignore'}
                               onChange={(e) => setMapping((m) => ({ ...m, [h]: e.target.value }))}
                             >
@@ -391,9 +391,9 @@ export default function MembersImportPage() {
 
           {activeStep === 'Options' && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Step 3: Options</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Step 3: Options</h2>
               <div className="space-y-2">
-                <div className="text-sm text-gray-700 font-medium">Duplicate Policy</div>
+                <div className="text-sm text-gray-700 dark:text-gray-200 font-medium">Duplicate Policy</div>
                 <div className="flex items-center gap-6 text-sm">
                   <label className="inline-flex items-center gap-2">
                     <input type="radio" name="dupe" value="skip" checked={duplicatePolicy==='skip'} onChange={() => setDuplicatePolicy('skip')} />
@@ -408,16 +408,16 @@ export default function MembersImportPage() {
                     <span>Undelete (if previously soft-deleted)</span>
                   </label>
                 </div>
-                <div className="text-xs text-gray-500">Photos are skipped for now. You can add photos later individually.</div>
-                <div className="text-xs text-gray-500">DOB format: <span className="font-medium">dd/mm/yyyy</span>.</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Photos are skipped for now. You can add photos later individually.</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">DOB format: <span className="font-medium">dd/mm/yyyy</span>.</div>
               </div>
             </div>
           )}
 
           {activeStep === 'Dry-run' && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Step 4: Dry-run Validation</h2>
-              <p className="text-sm text-gray-600">We validate mapped rows, check duplicates and formats (including DOB dd/mm/yyyy), and summarize results.</p>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Step 4: Dry-run Validation</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-300">We validate mapped rows, check duplicates and formats (including DOB dd/mm/yyyy), and summarize results.</p>
               {!selectedFile && (
                 <div className="p-3 rounded bg-yellow-50 border text-sm text-yellow-800">No file selected. Go back to Upload.</div>
               )}
@@ -430,41 +430,41 @@ export default function MembersImportPage() {
               {dryRunResult && (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
-                    <div className="p-2 bg-white rounded border">
-                      <div className="text-gray-500">Total</div>
+                    <div className="p-2 bg-white dark:bg-gray-900 rounded border dark:border-gray-700">
+                      <div className="text-gray-500 dark:text-gray-400">Total</div>
                       <div className="font-medium">{dryRunResult.summary.total}</div>
                     </div>
-                    <div className="p-2 bg-white rounded border">
-                      <div className="text-gray-500">Valid</div>
+                    <div className="p-2 bg-white dark:bg-gray-900 rounded border dark:border-gray-700">
+                      <div className="text-gray-500 dark:text-gray-400">Valid</div>
                       <div className="font-medium text-green-700">{dryRunResult.summary.valid}</div>
                     </div>
-                    <div className="p-2 bg-white rounded border">
-                      <div className="text-gray-500">Invalid</div>
+                    <div className="p-2 bg-white dark:bg-gray-900 rounded border dark:border-gray-700">
+                      <div className="text-gray-500 dark:text-gray-400">Invalid</div>
                       <div className="font-medium text-red-700">{dryRunResult.summary.invalid}</div>
                     </div>
-                    <div className="p-2 bg-white rounded border">
-                      <div className="text-gray-500">Dup (within file)</div>
+                    <div className="p-2 bg-white dark:bg-gray-900 rounded border dark:border-gray-700">
+                      <div className="text-gray-500 dark:text-gray-400">Dup (within file)</div>
                       <div className="font-medium">{dryRunResult.summary.duplicateWithinFile}</div>
                     </div>
-                    <div className="p-2 bg-white rounded border">
-                      <div className="text-gray-500">Dup (existing)</div>
+                    <div className="p-2 bg-white dark:bg-gray-900 rounded border dark:border-gray-700">
+                      <div className="text-gray-500 dark:text-gray-400">Dup (existing)</div>
                       <div className="font-medium">{dryRunResult.summary.duplicateExisting}</div>
                     </div>
                   </div>
                   {!!dryRunResult.errors.length && (
                     <div className="text-sm">
                       <div className="font-medium mb-1">Errors (first 20)</div>
-                      <div className="max-h-64 overflow-auto border rounded">
+                      <div className="max-h-64 overflow-auto border rounded dark:border-gray-700">
                         <table className="min-w-full text-xs">
-                          <thead className="bg-gray-100">
+                          <thead className="bg-gray-100 dark:bg-gray-800">
                             <tr>
-                              <th className="px-2 py-1 text-left border-b">Row</th>
-                              <th className="px-2 py-1 text-left border-b">Issues</th>
+                              <th className="px-2 py-1 text-left border-b dark:border-gray-700">Row</th>
+                              <th className="px-2 py-1 text-left border-b dark:border-gray-700">Issues</th>
                             </tr>
                           </thead>
                           <tbody>
                             {dryRunResult.errors.slice(0,20).map((e) => (
-                              <tr key={e.row} className="border-t">
+                              <tr key={e.row} className="border-t dark:border-gray-700">
                                 <td className="px-2 py-1">{e.row}</td>
                                 <td className="px-2 py-1">{e.issues.join('; ')}</td>
                               </tr>
@@ -481,8 +481,8 @@ export default function MembersImportPage() {
 
           {activeStep === 'Apply' && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Step 5: Apply Import</h2>
-              <p className="text-sm text-gray-600">We’ll create/update members in batches and show a summary upon completion.</p>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Step 5: Apply Import</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-300">We’ll create/update members in batches and show a summary upon completion.</p>
               {!selectedFile && (
                 <div className="p-3 rounded bg-yellow-50 border text-sm text-yellow-800">No file selected. Go back to Upload.</div>
               )}
@@ -495,46 +495,46 @@ export default function MembersImportPage() {
               {applyResult && (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 md:grid-cols-6 gap-3 text-sm">
-                    <div className="p-2 bg-white rounded border">
-                      <div className="text-gray-500">Total</div>
+                    <div className="p-2 bg-white dark:bg-gray-900 rounded border dark:border-gray-700">
+                      <div className="text-gray-500 dark:text-gray-400">Total</div>
                       <div className="font-medium">{applyResult.summary.total}</div>
                     </div>
-                    <div className="p-2 bg-white rounded border">
-                      <div className="text-gray-500">Created</div>
+                    <div className="p-2 bg-white dark:bg-gray-900 rounded border dark:border-gray-700">
+                      <div className="text-gray-500 dark:text-gray-400">Created</div>
                       <div className="font-medium text-green-700">{applyResult.summary.created}</div>
                     </div>
-                    <div className="p-2 bg-white rounded border">
-                      <div className="text-gray-500">Updated</div>
+                    <div className="p-2 bg-white dark:bg-gray-900 rounded border dark:border-gray-700">
+                      <div className="text-gray-500 dark:text-gray-400">Updated</div>
                       <div className="font-medium text-blue-700">{applyResult.summary.updated}</div>
                     </div>
-                    <div className="p-2 bg-white rounded border">
-                      <div className="text-gray-500">Undeleted</div>
+                    <div className="p-2 bg-white dark:bg-gray-900 rounded border dark:border-gray-700">
+                      <div className="text-gray-500 dark:text-gray-400">Undeleted</div>
                       <div className="font-medium text-purple-700">{applyResult.summary.undeleted}</div>
                     </div>
-                    <div className="p-2 bg-white rounded border">
-                      <div className="text-gray-500">Skipped</div>
+                    <div className="p-2 bg-white dark:bg-gray-900 rounded border dark:border-gray-700">
+                      <div className="text-gray-500 dark:text-gray-400">Skipped</div>
                       <div className="font-medium">{applyResult.summary.skipped}</div>
                     </div>
-                    <div className="p-2 bg-white rounded border">
-                      <div className="text-gray-500">Failed</div>
+                    <div className="p-2 bg-white dark:bg-gray-900 rounded border dark:border-gray-700">
+                      <div className="text-gray-500 dark:text-gray-400">Failed</div>
                       <div className="font-medium text-red-700">{applyResult.summary.failed}</div>
                     </div>
                   </div>
                   {!!applyResult.results.length && (
                     <div className="text-sm">
                       <div className="font-medium mb-1">Row results (first 20)</div>
-                      <div className="max-h-64 overflow-auto border rounded">
+                      <div className="max-h-64 overflow-auto border rounded dark:border-gray-700">
                         <table className="min-w-full text-xs">
-                          <thead className="bg-gray-100">
+                          <thead className="bg-gray-100 dark:bg-gray-800">
                             <tr>
-                              <th className="px-2 py-1 text-left border-b">Row</th>
-                              <th className="px-2 py-1 text-left border-b">Status</th>
-                              <th className="px-2 py-1 text-left border-b">Reason</th>
+                              <th className="px-2 py-1 text-left border-b dark:border-gray-700">Row</th>
+                              <th className="px-2 py-1 text-left border-b dark:border-gray-700">Status</th>
+                              <th className="px-2 py-1 text-left border-b dark:border-gray-700">Reason</th>
                             </tr>
                           </thead>
                           <tbody>
                             {applyResult.results.slice(0,20).map((r, idx) => (
-                              <tr key={idx} className="border-t">
+                              <tr key={idx} className="border-t dark:border-gray-700">
                                 <td className="px-2 py-1">{r.row}</td>
                                 <td className="px-2 py-1">{r.status}</td>
                                 <td className="px-2 py-1">{r.reason || '-'}</td>

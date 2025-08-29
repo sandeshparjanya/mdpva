@@ -20,16 +20,16 @@ export default async function AboutPage() {
 
   return (
     <Sidebar>
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <div className="flex justify-between items-start">
           <div>
-            <nav className="flex text-sm text-gray-500 mb-2">
+            <nav className="flex text-sm text-gray-500 dark:text-gray-400 mb-2">
               <span>Dashboard</span>
               <span className="mx-2">/</span>
-              <span className="text-gray-900 font-medium">About</span>
+              <span className="text-gray-900 dark:text-gray-100 font-medium">About</span>
             </nav>
-            <h1 className="text-2xl font-bold text-gray-900">About</h1>
-            <p className="text-sm text-gray-600 mt-1">Application and environment details</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">About</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">Application and environment details</p>
           </div>
           <div className="flex items-center">
             <ProfileMenu className="hidden lg:inline-block" />
@@ -38,12 +38,12 @@ export default async function AboutPage() {
       </div>
 
       <div className="p-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-6 w-full max-w-2xl">
+        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6 w-full max-w-2xl">
           <InfoRow label="App name" value={appName} />
           <InfoRow label="App version" value={appVersion} />
           <InfoRow label="Database" value={dbVersion || '—'} hint="PostgreSQL (sanitized)" />
           <InfoRow label="Last deployed" value={lastDeployed} />
-          <p className="text-xs text-gray-500 mt-4">Note: Database version is sanitized and does not reveal the hosted provider.</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">Note: Database version is sanitized and does not reveal the hosted provider.</p>
         </div>
       </div>
     </Sidebar>
@@ -53,8 +53,8 @@ export default async function AboutPage() {
 function InfoRow({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="py-3 flex items-start justify-between">
-      <div className="text-sm text-gray-600">{label}{hint ? <span className="ml-2 text-gray-400">({hint})</span> : null}</div>
-      <div className="text-sm font-medium text-gray-900">{value}</div>
+      <div className="text-sm text-gray-600 dark:text-gray-300">{label}{hint ? <span className="ml-2 text-gray-400 dark:text-gray-400">({hint})</span> : null}</div>
+      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{value}</div>
     </div>
   )
 }
