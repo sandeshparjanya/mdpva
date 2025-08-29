@@ -27,7 +27,7 @@ export default function LoginPage() {
       if (error) {
         // Handle different error types with user-friendly messages
         if (error.message.includes('Invalid login credentials')) {
-          setError('Invalid email or password. Please check your credentials.')
+          setError('Invalid username/email or password. Please check your credentials.')
         } else if (error.message.includes('Email not confirmed')) {
           setError('Please verify your email address before signing in.')
         } else if (error.message.includes('Too many requests')) {
@@ -47,9 +47,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="min-h-screen lg:h-screen flex flex-col lg:grid lg:grid-cols-12 lg:overflow-hidden">
       {/* Left Side - MDPVA Information */}
-      <div className="order-2 lg:order-1 w-full lg:flex-1 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 flex items-center justify-center p-8">
+      <div className="order-2 lg:order-1 w-full lg:col-span-7 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 flex flex-col items-center justify-center p-8 relative">
         <div className="max-w-lg text-center text-white">
           {/* Logo and Header */}
           <div className="mb-8">
@@ -79,19 +79,17 @@ export default function LoginPage() {
                 <p className="text-sm">Connect, collaborate, and grow together</p>
               </div>
             </div>
-
-            {/* Become Member Button */}
-            <div className="mt-8">
-              <button className="bg-white text-primary-700 font-semibold py-3 px-8 rounded-lg hover:bg-primary-50 transition-all duration-200 transform hover:scale-105">
-                Become a Member
-              </button>
-            </div>
           </div>
+        </div>
+        {/* Blue-side footer: static on mobile with gap; absolute only on lg+ */}
+        <div className="mt-8 text-center text-white/90 text-xs lg:mt-0 lg:absolute lg:inset-x-0 lg:bottom-4">
+          <div>© MDPVA</div>
+          <div>Developed by - Mindsfire Pvt Ltd.</div>
         </div>
       </div>
 
       {/* Right Side - Admin Login */}
-      <div className="order-1 lg:order-2 w-full lg:flex-1 bg-gray-50 flex items-center justify-center p-8">
+      <div className="order-1 lg:order-2 w-full lg:col-span-5 bg-gray-50 flex items-center justify-center p-8">
         <div className="max-w-md w-full mx-auto">
           {/* Login Card */}
           <div className="card">
@@ -101,18 +99,18 @@ export default function LoginPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email Field */}
+              {/* Username/Email Field */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                  Username or Email
                 </label>
                 <input
                   id="email"
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input-field"
-                  placeholder="admin@mdpva.in"
+                  placeholder="username/email"
                   required
                 />
               </div>
@@ -171,15 +169,7 @@ export default function LoginPage() {
             </form>
           </div>
 
-          {/* Footer */}
-          <div className="text-center mt-8">
-            <p className="text-xs text-gray-500">
-              For technical support, contact{' '}
-              <a href="mailto:support@mdpva.in" className="text-primary-600 hover:text-primary-700">
-                support@mdpva.in
-              </a>
-            </p>
-          </div>
+          
         </div>
       </div>
     </div>

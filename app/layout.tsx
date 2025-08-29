@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import Footer from '../components/Footer'
 
 export const metadata: Metadata = {
   title: 'MDPVA - Mysore District Photographer and Videographers Association',
@@ -30,10 +31,7 @@ export default function RootLayout({
         <main className="flex-1">
           {children}
         </main>
-        <footer className="py-4 footer-safe text-center text-gray-500 dark:text-gray-400 text-sm">
-          <div>© MDPVA</div>
-          <div>Developed by - Mindsfire Pvt Ltd.</div>
-        </footer>
+        <Footer />
       </body>
     </html>
   )
