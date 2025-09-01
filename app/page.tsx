@@ -1,9 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { EyeIcon, EyeSlashIcon, CameraIcon } from '@heroicons/react/24/outline'
 
 export default function LoginPage() {
+  // Force light mode on the login page regardless of saved/system preference
+  useEffect(() => {
+    try {
+      document.documentElement.classList.remove('dark')
+    } catch {}
+  }, [])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)

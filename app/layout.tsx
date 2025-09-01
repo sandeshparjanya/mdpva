@@ -19,6 +19,11 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `(() => { try {
   const k = 'mdpva:theme';
+  // Keep the root sign-in page always light and ignore theme preference
+  if (window.location && window.location.pathname === '/') {
+    document.documentElement.classList.remove('dark');
+    return;
+  }
   const saved = localStorage.getItem(k) || 'system';
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const isDark = saved === 'system' ? prefersDark : saved === 'dark';
